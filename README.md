@@ -36,59 +36,88 @@ job           发布系统只负责同步目录,配合gocron执行定时任务
 # 安装
 
 一.准备环境
+
 python 2.7
+
 发布机器普通用户对其他主机普通用户ssh秘钥免密码
+
 supervisord, 并且要所有主机加载统一目录,ssh用户有权限拷贝文件
+
 远程主机supervisor配置文件加载目录
+
 [include]
+
 files = supervisor_conf_dir/*.conf
 
 依赖包
+
 pip install -r requirements.txt
 
+
 二.创建mysql数据库
+
 创建数据库,请先修改配置文件
+
 CREATE DATABASE `dbname` /*!40100 DEFAULT CHARACTER SET utf8 */;
+
 grant all on dbname.* to deployuser@localhost;
 
 
 三.修改DB配置
+
 vim app/configdb.py
 
 
 四.初始化数据库
+
 python manager.py db init
+
 python manager.py db migrate
+
 python manager.py db upgrade
 
 
 
 
 五.配置
+
 目录请自行配置
+
 vim app/config.py
 
 
 六.用户
+
 如果有ldap,请打开Ldap项为True
+
 如果没有ldap,需要手动创创建 admin 用户
+
 python manager.py shell
 
 >>> with app.app_context():
+
 ...     u = User(email='admin@163.com',username='admin',password='admin')
+
 ...     db.session.add(u)
+
 ...     db.session.commit()
+
 ...
+
 >>>
 
 
 七.启动服务
+
 1.deploy web启动
+
 2.检查服务:  app/hostscheck/hostscheck.py
+
 把 deploy-supervisor.conf 拷贝到 supervisord的配置目录下,修改具体程序路径和log目录,然后加载
 
 
 八.服务状态报警
+
 如果都启动正常, 检查服务也正常启动, 可以配置定时任务报警
 
 * * * * * python /app/deploy/app/hostscheck/service_alarm.py >> /data/log/service_alarm.log 2>&1
