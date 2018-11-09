@@ -94,17 +94,15 @@ vim app/config.py
 
 python manager.py shell
 
->>> with app.app_context():
+with app.app_context():
 
-...     u = User(email='admin@163.com',username='admin',password='admin')
+    u = User(email='admin@163.com',username='admin',password='admin')
 
-...     db.session.add(u)
+    db.session.add(u)
 
-...     db.session.commit()
+    db.session.commit()
 
-...
 
->>>
 
 
 七.启动服务
@@ -120,7 +118,7 @@ python manager.py shell
 
 如果都启动正常, 检查服务也正常启动, 可以配置定时任务报警
 
-* * * * * python /app/deploy/app/hostscheck/service_alarm.py >> /data/log/service_alarm.log 2>&1
+#* * * * * python /app/deploy/app/hostscheck/service_alarm.py >> /data/log/service_alarm.log 2>&1
 
 
 
