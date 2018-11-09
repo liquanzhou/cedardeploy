@@ -3,7 +3,20 @@
 适合基于ssh秘钥的中小公司环境, 代码逻辑简单, 需要运维兄弟会一点python, 自定义与公司业务相关的功能,自行发挥.
 
 
-支持编译发布的项目类型,可自行扩展
+   ![用户与组管理](https://github.com/liquanzhou/img/blob/master/cedardeploy/%E7%94%A8%E6%88%B7%E4%B8%8E%E7%BB%84%E7%AE%A1%E7%90%86.png "用户与组管理")
+ 
+   ![添加项目](https://github.com/liquanzhou/img/blob/master/cedardeploy/%E6%B7%BB%E5%8A%A0%E9%A1%B9%E7%9B%AE.png "添加项目")
+
+   ![工单](https://github.com/liquanzhou/img/blob/master/cedardeploy/%E5%B7%A5%E5%8D%95.png "工单")
+
+   ![发布页面](https://github.com/liquanzhou/img/blob/master/cedardeploy/%E5%8F%91%E5%B8%83%E9%A1%B5%E9%9D%A2.png "发布页面")
+
+   ![日志](https://github.com/liquanzhou/img/blob/master/cedardeploy/%E6%97%A5%E5%BF%97.png "日志")
+
+   ![服务失败列表](https://github.com/liquanzhou/img/blob/master/cedardeploy/%E6%9C%8D%E5%8A%A1%E5%A4%B1%E8%B4%A5%E5%88%97%E8%A1%A8.png "服务失败列表")
+
+
+支持编译发布的项目类型,其他项目,编译方式,可自行扩展
 
     nodejs 多进程 编译         supervisor
 
@@ -17,9 +30,9 @@
 
     sh                         supervisor # 非nohup的前台持续运行进程
 
-    static        只需要传送到nginx相关机器
+    static        发布到nginx机器,指定nginx配置
 
-    php           先同步配置文件,在同步代码
+    php           先同步配置文件,在发布代码,指定nginx配置
 
     job           发布系统只负责同步目录,配合gocron执行定时任务
 
