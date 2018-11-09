@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+
+{% block loading %}
+    <script type="text/javascript"> hostlisterrweb(); </script>
+{% endblock %}
+
+
+{% block daohang %}
+        <div class="leftDiv" id="leftDiv" path="online_statistics">
+            <div id="project" class="sidebar-menu">
+                <ul type="disc">
+                    <li><a class="statistics" menu="portlist">端口列表</a></li>
+                    <li><a class="statistics" menu="projectlist">项目列表</a></li>
+                    <li><a class="statistics" menu="hostlisterr">服务错误状态</a></li>
+                    <li><a class="statistics" menu="onlinenum">上线次数列表</a></li>
+                </ul>
+            </div>
+        </div>
+{% endblock %}
+
+{% block page_content %}
+
+    <ol class="breadcrumb">
+        <li><a href="/index">Home</a></li>
+        <li class="active">统计</li>
+    </ol>
+
+    <div class="statistics_div" id="statistics"></div>
+
+
+{% endblock %}
+
+
+
+

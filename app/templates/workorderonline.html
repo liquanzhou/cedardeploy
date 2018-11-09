@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+
+{% block loading %}
+    <script type="text/javascript"> workorderonline(); </script>
+{% endblock %}
+
+
+{% block daohang %}
+        <div class="leftDiv" id="leftDiv" path="online">
+            <div id="group" class="sidebar-menu">
+            </div>
+            </br>
+            <div id="project" class="sidebar-menu">
+            </div>
+        </div>
+{% endblock %}
+
+{% block page_content %}
+
+    <ol class="breadcrumb">
+        <li><a href="/index">Home</a></li>
+        <li><a href="/online">上线</a></li>
+        <li class="active">工单上线</li>
+    </ol>
+
+    <div class="projectinfo" style="height:auto;border:1px solid #ccc;padding-left:10px;">
+        <div style="float:left" id="project_button"></div>
+        <div class="add_project_div" id="project_div"></div>
+        <br>
+        <br>
+    </div>
+    <br>
+    <div class="confinfo" style="height:auto;border:1px solid #ccc;padding-left:10px;">
+        <div style="float:left" id="config_button"></div>
+        <div style="float:right" id="config_button_div"></div>
+        <br>
+        <div class="config_div" id="config_div"  status="close"></div>
+        <br>
+        <br>
+    </div>
+    <br>
+    <div class="hostList" style="height:auto;border:1px solid #ccc;padding-left:10px;overflow-x:scroll;white-space:nowrap;">
+        <div>主机列表: <a href="javascript:;" onclick='selectAll("onlinehost");'>全选</a>
+            <div style="float:right" id="add_host_div"></div>
+        </div>
+        <div style="width:auto;height:auto;">
+            <div class="hostListTable" id="host"></div>
+        </div>
+        <br>
+
+        <div class="div2" style="width:auto;">
+            <div id="select_project"></div>
+            <div style="height:40px;">
+                <div style="float:left;width:370px;">
+                    <div style="float:left;width:75px;">
+                        HistoryTag:
+                    </div>
+                    <div id="tag_div" style="float:left;width:210px;">
+                        <select id="select_tag" class="form-control">
+                          <option value="online1">tag</option>
+                        </select>
+                    </div>
+                    <div style="float:left;width:60px;">
+                        <button id="back_submit" class="btn btn-danger btn-sm" >回滚</button>
+                    </div>
+                </div>
+
+                <div style="float:left;width:60px;">
+                     <button id="rmlock" class="btn btn-danger btn-sm" >清除锁</button>
+                </div>
+                <div style="float:left;width:60px;">
+                     <button id="restart_submit" class="btn btn-danger btn-sm" >重启</button>
+                </div>
+                <div style="float:right;width:360px;">
+                    <div style="float:left;width:260px;">
+                        <div style="float:left;width:80px;">
+                            CurrentTag:
+                        </div>
+                        <div id="online_tag_div" style="float:left;width:180px;">
+                            null
+                        </div>
+                    </div>
+                    <div id="updatebutton" style="float:right;width:100px;">
+                        <button id="btn_submit" class="btn btn-success" type="button">更新重启</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <div class="resRight" style="margin-top:20px;border:1px solid #CCCCCC;padding-left:10px;">
+        <div >
+            <div style="float:left">
+                <label>【任务执行状态】</label>
+            </div>
+            <div id="lastlog">
+               <a>上次更新日志</a>
+            </div>
+        </div>
+        </br>
+        <div id="resDiv"></div>
+        <div id="ProgressBarDiv" class="progress">
+        </div>
+        <div ><label>【远程执行结果】</label></div>
+        <div id="cnt"></div>
+    </div>
+
+{% endblock %}
+
+
+
+

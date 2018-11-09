@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block loading %}
+    <script type="text/javascript"> group_list(); </script>
+    <script type="text/javascript"> push_add_project_table(); </script>
+{% endblock %}
+
+
+{% block daohang %}
+    <div class="leftDiv" id="leftDiv" path="project_admin">
+        <div id="group" class="sidebar-menu">
+        </div>
+        </br>
+        <div id="project" class="sidebar-menu">
+        </div>
+    </div>
+{% endblock %}
+
+
+{% block page_content %}
+
+    <ol class="breadcrumb">
+        <li><a href="/index">Home</a></li>
+        <li class="active">项目管理</li>
+    </ol>
+
+    <div class="projectinfo" style="height:auto;border:1px solid #ccc;padding-left:10px;">
+        <div style="float:left" id="project_button">
+            <button id="open_add_project" status="close" type="button" class="btn btn-small btn-info">添加项目</button>
+        </div>
+        <div style="float:right" id="project_button_div">
+        </div>
+        <div class="add_project_div" id="project_div"  status="close"></div>
+        <br>
+        <br>
+    </div>
+    <br>
+    <div class="confinfo" style="height:auto;border:1px solid #ccc;padding-left:10px;">
+        <div style="float:left" id="config_button"></div>
+        <div style="float:right" id="config_button_div"></div>
+        <br>
+        <div class="config_div" id="config_div"  status="close"></div>
+        <br>
+        <br>
+    </div>
+    <br>
+    <div class="hostList" style="height:auto;border:1px solid #ccc;padding-left:10px;">
+        <div>主机信息
+            <div style="float:left" id="add_host_div"></div>
+            <div style="float:right" id="edit_host_div"></div>
+        </div>
+        <br>
+        <div style="width:auto;height:auto;">
+            <div class="addListTable" id="add_host_table"></div>
+            <div class="hostListTable" id="host"></div>
+        </div>
+        <br>
+    </div>
+    <div class="div2" style="width:auto;">
+        <div id="select_project">
+        </div>
+    </div>
+
+{% endblock %}
+
+

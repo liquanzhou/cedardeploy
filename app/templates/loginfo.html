@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+
+{% block loading %}
+    <script type="text/javascript"> project_list(); </script>
+{% endblock %}
+
+
+{% block daohang %}
+        <div class="leftDiv" id="leftDiv" path="online">
+            <div id="project" class="sidebar-menu">
+            </div>
+        </div>
+{% endblock %}
+
+{% block page_content %}
+
+    <ol class="breadcrumb">
+        <li><a href="/index">Home</a></li>
+        <li class="active">上线</li>
+    </ol>
+
+    <div class="projectinfo" style="height:auto;border:1px solid #ccc;padding-left:10px;">
+        <div style="float:left" id="project_button"></div>
+        <div class="add_project_div" id="project_div"></div>
+        <br>
+        <br>
+    </div>
+    <br>
+    <div class="hostList" style="height:auto;border:1px solid #ccc;padding-left:10px;">
+        <div>主机列表: <a href="javascript:;" onclick='selectAll("client");'>全选</a>
+            <div style="float:right" id="add_host_div"></div>
+        </div>
+        <div style="width:auto;height:auto;">
+            <div class="hostListTable" id="host"></div>
+        </div>
+        <br>
+    </div>
+    <div class="div2" style="width:auto;">
+        <div id="select_project"></div>
+        <div>
+            <button id="btn_submit" class="btn btn-success" type="button">执行更新</button>
+            <div style="float:right">
+                <button id="back_submit" class="btn btn-danger" >回退上一版本?</button>
+            </div>
+        </div>
+    </div>
+    <div class="resRight" style="margin-top:20px;border:1px solid #CCCCCC;padding-left:10px;">
+        <div ><label>【任务分发结果】</label></div>
+        <div id="resDiv"></div>
+        <div ><label>【命令执行结果】</label></div>
+        <div id="cnt"></div>
+    </div>
+
+{% endblock %}
+
+
+
+

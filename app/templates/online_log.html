@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+
+{% block loading %}
+    <script type="text/javascript"> group_list(); </script>
+    <script type="text/javascript"> online_log_all(); </script>
+{% endblock %}
+
+
+{% block daohang %}
+        <div class="leftDiv" id="leftDiv" path="online_log">
+            <div id="group" class="sidebar-menu">
+            </div>
+            </br>
+            <div id="project" class="sidebar-menu">
+            </div>
+        </div>
+{% endblock %}
+
+{% block page_content %}
+
+    <ol class="breadcrumb">
+        <li><a href="/index">Home</a></li>
+        <li class="active">上线日志</li>
+    </ol>
+
+    <div class="log_info" style="height:auto;border:1px solid #ccc;padding-left:10px;">
+        <h5>详细信息</h5>
+        <div class="online_log_div" id="online_log"></div>
+
+    </div>
+    <div class="log_time" style="height:auto;border:1px solid #ccc;padding-left:10px;">
+        <h5>更新时间</h5>
+        <div class="online_log_time_div" id="online_log_time"></div>
+    </div>
+    <br>
+
+
+{% endblock %}
+
+
+
+

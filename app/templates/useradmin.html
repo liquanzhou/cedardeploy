@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+
+{% block loading %}
+    <script type="text/javascript"> user_list(); </script>
+{% endblock %}
+
+
+{% block daohang %}
+        <div class="leftDiv" id="leftDiv" path="useradmin">
+            <div id="user_list" class="sidebar-menu">
+            </div>
+        </div>
+
+
+{% endblock %}
+
+{% block page_content %}
+    <div id="update_user" class="sidebar-menu">
+        <table class="table table-hover">
+            <thead><tr><th>username</th><th>password</th><th>operation</th></thead>
+            <tr>
+                <td><input type="text" id="addusername" class="form-control"  value=""></td>
+                <td><input type="text" id="addpassword" class="form-control"  value=""></td>
+                <td><button id="add_user" class="btn btn-small btn-success">添用户</button></td>
+            </tr>
+        </table>
+    </div>
+    <div id="add_servergroup" class="sidebar-menu">
+    </div>
+    <div id="servergroup_list" class="sidebar-menu">
+    </div>
+
+
+{% endblock %}
+
+
+
+

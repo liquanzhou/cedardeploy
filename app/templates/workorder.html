@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+
+{% block loading %}
+    <!-- <script type="text/javascript"> online_workorder(); </script>
+    -->
+{% endblock %}
+
+
+{% block daohang %}
+        <div class="leftDiv" id="leftDiv" path="online_workorder">
+            <div id="workorder" class="sidebar-menu">
+                <ul type="disc">
+                    <li><a class="workordermenu" menu="createworkorder">创建工单</a></li>
+                    <li><a class="workordermenu" menu="waitworkorder">未完成工单</a></li>
+                    <li><a class="workordermenu" menu="doneworkorder">已完成工单</a></li>
+                </ul>
+            </div>
+        </div>
+{% endblock %}
+
+
+{% block page_content %}
+
+    <ol class="breadcrumb">
+        <li><a href="/index">Home</a></li>
+        <li class="active">工单</li>
+    </ol>
+
+    <div class="workorder_div"  id="workorder_div">
+
+    </div>
+
+
+{% endblock %}
+
+
+
+
