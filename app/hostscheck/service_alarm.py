@@ -6,8 +6,12 @@ import json
 import time
 import cPickle
 import requests
-reload(sys);
-sys.setdefaultencoding('utf8');
+
+try:
+    reload(sys)  # Python 2
+    sys.setdefaultencoding('utf8')
+except NameError:
+    pass         # Python 3
 
 sys.path.append("..")
 from configdb import *
@@ -32,14 +36,13 @@ except:
     pd = {}
 
 
-
 AlarmInfo = 'ServiceDown:'
 RecoveryInfo = 'ServiceUP:'
 
 try:
-    sql = "select `project_name`,`hostname`,`ip`,`variable2`,`variable5` from `serverinfo` 
-                   where variable2 != 'RUNNING' and variable2 != 'SSHOK' and variable2 != 'null' 
-                         and project_name not like 'qa_%' and project_name not like 'test_%'; "
+    sql = """select `project_name`,`hostname`,`ip`,`variable2`,`variable5` from `serverinfo`
+                   where variable2 != 'RUNNING' and variable2 != 'SSHOK' and variable2 != 'null'
+                         and project_name not like 'qa_%' and project_name not like 'test_%'; """
     c.execute(sql)
     failData = c.fetchall()
 except:
@@ -48,8 +51,8 @@ except:
 
 for s in pd.values():
     try:
-        sql = "select `variable2`,`variable5`,`hostname` from `serverinfo` 
-                       where project_name = '%s' and ip = '%s';" %(s['project'], s['ip'])
+        sql = """select `variable2`,`variable5`,`hostname` from `serverinfo`
+                       where project_name = '%s' and ip = '%s';""" %(s['project'], s['ip'])
         c.execute(sql)
         ones = c.fetchall()
         if not ones:
@@ -76,7 +79,7 @@ for i in failData:
         k = "%s : %s" %(i[0], i[2])
         if k in pd:
             if timestamp - pd[k]['timestamp'] < 1200:
-                print 'warning: %s Non repeating alarm.' % (k)
+                print('warning: %s Non repeating alarm.' % (k))
                 continue
         pd[k] = {'project':i[0], 'ip':i[2], 'status':i[3], 'timestamp':timestamp, 'hostname':i[1], 'atime':i[4] }
         AlarmInfo = '%s\n%s %s %s %s' %(AlarmInfo, k, i[1], i[3], i[4])
@@ -103,7 +106,7 @@ except:
 headers = {'Content-Type':'application/json'}
 
 if AlarmInfo != 'ServiceDown:':
-    print AlarmInfo
+    print(AlarmInfo)
     ExpansionHost = {
             "msgtype": "text",
             "text": {
@@ -113,10 +116,10 @@ if AlarmInfo != 'ServiceDown:':
     try:
         requests.post(url=sreRobot, headers=headers, data=json.dumps(ExpansionHost))
     except Exception as err:
-        print str(err)
+        print(str(err))
 
 if RecoveryInfo != 'ServiceUP:':
-    print RecoveryInfo
+    print(RecoveryInfo)
     ExpansionHost = {
             "msgtype": "text",
             "text": {
@@ -126,4 +129,4 @@ if RecoveryInfo != 'ServiceUP:':
     try:
         requests.post(url=sreRobot, headers=headers, data=json.dumps(ExpansionHost))
     except Exception as err:
-        print str(err)
+        print(str(err))

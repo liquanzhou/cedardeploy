@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
+from __future__ import print_function
 import json
 import time
 import sys
@@ -13,7 +14,7 @@ import random
 import cPickle
 import MySQLdb as mysql
 
-print '%s' % sys.path[0]
+print('%s' % sys.path[0])
 
 sys.path.append("..")
 from configdb import *
@@ -31,21 +32,21 @@ c = mdb.cursor()
 
 
 def project_info(project):
-    print project
+    print(project)
     sql = "SELECT * FROM `projectinfo` WHERE project_name = '%s';" % (project)
     c.execute(sql)
     ones = c.fetchall()
     return ones[0]
 
 def config_info(project):
-    print project
+    print(project)
     sql = "SELECT * FROM `project_config` WHERE project_name = '%s';" % (project)
     c.execute(sql)
     ones = c.fetchall()
     return ones[0]
 
 def gethostname(project):
-    print project
+    print(project)
     sql = "SELECT `ip`,`hostname` FROM `serverinfo` WHERE project_name = '%s';" % (project)
     c.execute(sql)
     ones = c.fetchall()
@@ -58,7 +59,7 @@ def getworkorder(project):
     sql = "SELECT `applicant`,`remarks` FROM `workorder`  WHERE status = 'wait' and project = '%s';" % (project)
     c.execute(sql)
     ones = c.fetchall()
-    print ones
+    print(ones)
     if ones:
         workorderinfo = {'status':'ok', 'applicant':ones[-1][0], 'remarks':ones[-1][1]}
     else:
@@ -83,10 +84,10 @@ class Deploy:
         self.hostnameinfo = gethostname(project)
         self.workorderinfo = getworkorder(project)
 
-        print pinfo
-        print cinfo
-        print self.hostnameinfo
-        print self.workorderinfo
+        print(pinfo)
+        print(cinfo)
+        print(self.hostnameinfo)
+        print(self.workorderinfo)
 
         self.p = pinfo[1]
         self.environment = pinfo[2]
@@ -123,7 +124,7 @@ class Deploy:
         self.autotestURL = autotestURL
         self.autolist = autolist
 
-        print self.autolist
+        print(self.autolist)
 
         if self.Type == 'go' or self.Type == 'golang':
             self.host_path = go_host_path
@@ -242,13 +243,13 @@ class Deploy:
         sql = "INSERT INTO `updatelog` (`taskid`,`project_name`,`host`,`tag`,`rtime`,`status`,`loginfo`)  \
                       VALUES('%s', '%s', '%s', '%s', '%s', '%s', '%s'); " % (
                       self.taskid, self.project, host_name, self.tag, rtime, self.status, loginfo)
-        print sql
+        print(sql)
         try:
             c.execute(sql)
             self.loginfo = ''
         except Exception as err:
-            print 'ERROR: wlogsql execute SQL fail'
-            print str(err)
+            print('ERROR: wlogsql execute SQL fail')
+            print(str(err))
             self.done()
 
     def updateHostCommit(self):
@@ -256,23 +257,23 @@ class Deploy:
             sql = "update `serverinfo` set `variable3`='%s',`variable4`='%s' \
                            where project_name='%s' and ip='%s';   " % (
                            self.commitid, self.tag, self.project, self.host)
-            print sql
+            print(sql)
             try:
                 c.execute(sql)
             except:
-                print 'ERROR: updateHostCommit execute SQL fail'
+                print('ERROR: updateHostCommit execute SQL fail')
                 self.done()
 
     def updateTaskStatus(self):
         sql = "update `updateoperation` set `loginfo`='%s',`tag`='%s' \
                        where project_name='%s' and taskid='%s';  " % (
                        self.status, self.tag, self.project, self.taskid)
-        print sql
+        print(sql)
         try:
             c.execute(sql)
         except Exception as err:
-            print 'ERROR: updateTaskStatus execute SQL fail'
-            print str(err)
+            print('ERROR: updateTaskStatus execute SQL fail')
+            print(str(err))
 
     def notice(self):
         if self.environment != 'online':
@@ -313,8 +314,8 @@ class Deploy:
             try:
                 r = requests.post(url=Robot, data=json.dumps(data), headers=headers, timeout=2).json()
             except Exception as err:
-                print 'ERROR: notice dingding api error'
-                print str(err)
+                print('ERROR: notice dingding api error')
+                print(str(err))
 
     def expansion_notice(self):
         if self.environment != 'online':
@@ -367,7 +368,7 @@ class Deploy:
     def getloginfo(self, port = None):
         if port is None:
             port = self.port
-        print self.loginfo
+        print(self.loginfo)
         if self.Type == 'golang':
             shell_cmd = '''ssh -o StrictHostKeyChecking=no -o ConnectTimeout=2 %s@%s "tail -30 %s/%s.log " ''' %(
                            self.exec_user, self.host, supervisor_log_path, self.project)
@@ -375,13 +376,13 @@ class Deploy:
 
 
     def exec_shell(self, shell_cmd):
-        print shell_cmd
+        print(shell_cmd)
         s = subprocess.Popen( shell_cmd, shell=True, stdin = subprocess.PIPE, stdout = subprocess.PIPE, stderr = subprocess.PIPE  )
         newlog, stderr = s.communicate()
         return_status = s.returncode
         self.addlog('%s\n%s' % (newlog.strip(), stderr.strip()) )
 
-        print newlog
+        print(newlog)
         if return_status == 0:
             return {'status':'ok', 'log':newlog}
         else:
@@ -525,10 +526,10 @@ class Deploy:
         if self.Type == 'golang':
             shell_cmd = '''cd %s/%s-%s && cp -a startdata libs deploy-bin/ ''' %(
                                   self.project_path, self.project, self.tag)
-            print os.popen(shell_cmd).read()
+            print(os.popen(shell_cmd).read())
             shell_cmd = '''cd %s/%s-%s && cp -a deploy-etc deploy-bin/etc 
                         ''' %(self.project_path, self.project, self.tag)
-            print os.popen(shell_cmd).read()
+            print(os.popen(shell_cmd).read())
 
             self.addlog('---------------------------\n%s\n---------------------------' %self.config1)
         else:
@@ -603,7 +604,7 @@ class Deploy:
                 s.settimeout(1)
                 try:
                     portstatus = s.connect_ex((self.host, int(port) ))
-                    print 'portstatus %s: %s' %(i, portstatus)
+                    print('portstatus %s: %s' %(i, portstatus))
                     #self.addlog('portstatus %s: %s' %(i, portstatus))
                     if portstatus == 0:
                         results = 'ok'
@@ -695,7 +696,7 @@ class Deploy:
                        tail -5 $s/%s/logs/catalina.out" 
                     ''' %(self.exec_user, self.host, self.host_path, self.project, self.host_path, self.project, 
                           self.host_path, self.project, self.host_path, self.project, self.project, self.host_path, self.project)
-        print shell_cmd
+        print(shell_cmd)
         self.exec_shell(shell_cmd)
         if 'Address already in use' in self.loginfo:
             self.status = 'fail'

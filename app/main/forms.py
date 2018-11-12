@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+import logging
+import subprocess
+import time
 
 
 def check_time():
@@ -33,7 +36,7 @@ def shellcmd(shell_cmd):
 
 
 def writefile(path, content):
-    f = file(path, 'w')
+    f = open(path, 'w')
     f.write(content)
     f.flush()
     f.close()
@@ -239,7 +242,3 @@ JAVA_OPTS="-server -Xms4000m -Xmx4000m -Xmn400m -XX:PermSize=256M -XX:MaxPermSiz
 
 CATALINA_PID="$CATALINA_HOME"/temp/pid.tmp
 '''
-
-
-
-
