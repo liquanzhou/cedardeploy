@@ -78,9 +78,9 @@
 
     创建数据库,请先修改配置文件
 
-    CREATE DATABASE `dbname` /*!40100 DEFAULT CHARACTER SET utf8 */;
+    CREATE DATABASE `cedardeploy` /*!40100 DEFAULT CHARACTER SET utf8 */;
 
-    grant all on dbname.* to deployuser@localhost;
+    grant all on cedardeploy.* to deploy@127.0.0.1 identified by 'Deploy123';
 
 
 三.修改DB配置
@@ -89,6 +89,9 @@
 
 
 四.初始化数据库
+
+    # 如果初始化数据库报错
+    # 检查是否有 migrations, 删除
 
     python manager.py db init
 

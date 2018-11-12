@@ -3,15 +3,15 @@
 
 
 
-user="opsdeploy"
+user="deploy"
 
-passwd="123456"
+passwd="Deploy123"
 
-host='localhost'
+host='127.0.0.1'
 
 port=3306
 
-dbname="xuesongdeploy"
+dbname="cedardeploy"
 
 connect_timeout=10
 

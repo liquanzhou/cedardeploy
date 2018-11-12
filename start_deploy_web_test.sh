@@ -1,6 +1,7 @@
 
 # start
-python manager.py runserver  -d -r -h 172.16.255.146 -p 6000
+python manager.py runserver  -d -r -p 6000
+#python manager.py runserver  -d -r -h 10.10.10.10 -p 6000
 
 
 

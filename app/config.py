@@ -54,10 +54,10 @@ basicGlist = ['op-ad', 'op-ab', 'ff-aa']
 
 
 # 检查服务状态时,获取项目信息
-#projectinfoallurl = 'http://127.0.0.1:5000/projectinfoall'
-#hostlistallurl = 'http://127.0.0.1:5000/hostlistall'
+#projectinfoallurl = 'http://127.0.0.1:6000/projectinfoall'
+#hostlistallurl = 'http://127.0.0.1:6000/hostlistall'
 # 检查服务状态时,获取主机列表
-iplistallurl = 'http://172.16.255.146:5000/iplistall'
+iplistallurl = 'http://127.0.0.1:6000/iplistall'
 # 检查失败不报警的项目  项目名
 filterList = ['online_testproject']
 # 检查失败不报警的主机列表 ip
