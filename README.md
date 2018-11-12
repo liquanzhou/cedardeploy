@@ -90,8 +90,7 @@
 
 四.初始化数据库
 
-    # 如果初始化数据库报错
-    # 检查是否有 migrations, 删除
+    # 如果初始化数据库报错,检查是否有 migrations目录, 删除目录
 
     python manager.py db init
 
