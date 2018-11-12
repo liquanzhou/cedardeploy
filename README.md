@@ -16,27 +16,30 @@
    ![服务失败列表](https://github.com/liquanzhou/img/blob/master/cedardeploy/%E6%9C%8D%E5%8A%A1%E5%A4%B1%E8%B4%A5%E5%88%97%E8%A1%A8.png "服务失败列表")
 
 
-支持编译发布的项目类型
+支持编译发布的项目类型,每个项目都需要填git地址,jobs,sh,static也是需要统一的git仓库管理.
 
-    nodejs 多进程 编译         supervisor
+    
+    nodejs 多进程 编译         supervisor  index.js --port=4000, 在添加主机同时要选择进程数量,服务端口从项目配置端口起始递增, 其他方式,可编辑配置中修改
 
-    python 多进程              supervisor
+    python 多进程              supervisor  main.py --port=5000, 在添加主机同时要选择进程数量,服务端口从项目配置端口起始递增, 其他方式或无端口,可在编辑配置修改
 
-    golang        编译bin文件  supervisor
+    golang        编译bin文件  supervisor  每个公司可能编译方式一样,需要自行定义
 
-    java-tomcat   mvn编译  需要系统镜像放置一个标准的空tomcat
+    sh                         supervisor  非nohup的前台持续运行进程, 默认 启动脚本: deploy_start.sh , 里面可 exec 启动命令,避免进程无法被正常重启
 
-    java-jar      mvn编译      supervisor
+    java-jar      mvn编译      supervisor  由于很久不用,改动中删除了,如果需要支持,也可以自定义编译方式,supervisor模板,重启方式
 
-    sh                         supervisor # 非nohup的前台持续运行进程
+    java-tomcat   mvn编译  需要系统镜像放置一个标准的空tomcat,在添加主机的同时拷贝一个服务的tomcat目录,在把添加项目时生成的模板配置文件,server_xml, catalina_sh,传递到远程服务主机.有需要改动在 app/main/forms.py 中修改模板配置.
 
-    static        发布到nginx机器,指定nginx配置
+    static        发布到nginx机器,nginx配置中指定项目对应目录即可
 
-    php           先同步配置文件,在发布代码,指定nginx配置
+    php           先同步配置文件,在发布代码,nginx配置中指定项目对应目录即可
 
     job           发布系统只负责同步目录,同时生成定时任务配置文件。传到远程主机cron.d目录，系统自动加载  # 下个版本更新
 
     编译环境自行安装
+    配置文件如果需要分离,可在配置信息中定义,直接填文件,或者拉取地址.编译脚本中,自行写文件或者拉取配置.
+    程序启动方式,添加项目后,可看配置信息中生成的 supervisor 模板,如不可改动,请自行修改 app/main/forms.py 中模板
     其它项目类型,运维人员可与程序沟通清晰,制定仓库规则规范,项目统一,就可以自行定制扩展
     注意： 以上类型,并不一定业务完全匹配,代码仓库目录结构,编译方式,同步目录过程先后,等都要与程序沟通清晰明确,逐一确定统一.  
     
@@ -128,7 +131,7 @@
 
     2.检查服务:  app/hostscheck/hostscheck.py
 
-    把 deploy-supervisor.conf 拷贝到 supervisord的配置目录下,修改具体程序路径和log目录,然后加载
+    把 deploy-supervisor.conf 拷贝到 supervisord的配置目录下,修改具体程序路径,log目录,ip和port,然后加载
 
 
 八.服务状态报警
