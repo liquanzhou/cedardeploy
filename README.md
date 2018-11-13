@@ -5,13 +5,13 @@
 
    ![用户与组管理](https://github.com/liquanzhou/img/blob/master/cedardeploy/%E7%94%A8%E6%88%B7%E4%B8%8E%E7%BB%84%E7%AE%A1%E7%90%86.png "用户与组管理")
  
-   ![添加项目](https://github.com/liquanzhou/img/blob/master/cedardeploy/%E6%B7%BB%E5%8A%A0%E9%A1%B9%E7%9B%AE.png "添加项目")
+   ![添加项目](https://github.com/liquanzhou/img/blob/master/cedardeploy/111.jpeg "添加项目")
 
-   ![工单](https://github.com/liquanzhou/img/blob/master/cedardeploy/%E5%B7%A5%E5%8D%95.png "工单")
+   ![工单](https://github.com/liquanzhou/img/blob/master/cedardeploy/444.jpeg "工单")
 
-   ![发布页面](https://github.com/liquanzhou/img/blob/master/cedardeploy/%E5%8F%91%E5%B8%83%E9%A1%B5%E9%9D%A2.png "发布页面")
+   ![发布页面](https://github.com/liquanzhou/img/blob/master/cedardeploy/333.jpeg "发布页面")
 
-   ![日志](https://github.com/liquanzhou/img/blob/master/cedardeploy/%E6%97%A5%E5%BF%97.png "日志")
+   ![日志](https://github.com/liquanzhou/img/blob/master/cedardeploy/222.jpeg "日志")
 
    ![服务失败列表](https://github.com/liquanzhou/img/blob/master/cedardeploy/%E6%9C%8D%E5%8A%A1%E5%A4%B1%E8%B4%A5%E5%88%97%E8%A1%A8.png "服务失败列表")
 
