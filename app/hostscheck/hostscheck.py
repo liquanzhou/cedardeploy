@@ -89,6 +89,8 @@ class myThread(threading.Thread):
                 if hoststatus['status'] == 'ok':
                     DR['sshStatus'] = 'SSHOK' 
                     for s in hoststatus['log'].strip().split('\n'):
+                        if s.strip() == '':
+                            continue
                         project = s.split()[0].split(':')[0]
                         status = s.split()[1]
                     
