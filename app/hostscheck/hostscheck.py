@@ -101,7 +101,7 @@ class myThread(threading.Thread):
                     DR['sshStatus'] = 'SSHFAIL' 
             except Exception as err:
                 DR['sshStatus'] = 'UNKNOWN' 
-                print str(err)
+                print 'ERROR: %s, %s' %(str(err), hoststatus['log'])
 
             statusqueueLock.acquire()
             try:

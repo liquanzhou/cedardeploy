@@ -480,7 +480,7 @@ $("body").on('click', '#del_host', function(){
 $("body").on('click', '#deploy_config', function(){
     var deploy_config_host = $(this).attr('host')
     var deploy_config_project = $(this).attr('project')
-    if (confirm('请确认部署: '+deploy_config_host)) {
+    if (confirm('警告: 配置文件改动会重启服务. 请确认!!!  '+deploy_config_host)) {
         var param = {
             host:    deploy_config_host,
             project: deploy_config_project,
