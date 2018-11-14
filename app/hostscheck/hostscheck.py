@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+from __future__ import print_function
 import Queue
 import threading
 import time
@@ -7,8 +8,12 @@ import sys
 import requests
 import subprocess
 import MySQLdb as mysql
-reload(sys);
-sys.setdefaultencoding('utf8');
+
+try:
+    reload(sys)  # Python 2
+    sys.setdefaultencoding('utf8')
+except NameError:
+    pass         # Python 3
 
 sys.path.append("..")
 from configdb import *
@@ -43,10 +48,10 @@ class myThread(threading.Thread):
                 data = self.sq.get(True, 2)
             except Exception as err:
                 statusqueueLock.release()
-                print str(err)
+                print(str(err))
                 continue
             statusqueueLock.release()
-            print data
+            print(data)
             if data['sshStatus'] == 'SSHOK':
                 Exclude = ''
                 for Project,Status in data['Projects'].items():
@@ -76,7 +81,7 @@ class myThread(threading.Thread):
                 IP = self.q.get(True, 2)
             except Exception as err:
                 queueLock.release()
-                print str(err)
+                print(str(err))
                 continue
             queueLock.release()
 
@@ -103,16 +108,16 @@ class myThread(threading.Thread):
                     DR['sshStatus'] = 'SSHFAIL' 
             except Exception as err:
                 DR['sshStatus'] = 'UNKNOWN' 
-                print 'ERROR: %s, %s' %(str(err), hoststatus['log'])
+                print('ERROR: %s, %s' %(str(err), hoststatus['log']))
 
             statusqueueLock.acquire()
             try:
                 self.sq.put(DR, True, 2)
                 if self.sq.full():
-                    print 'ERROR: sq Queue full'
+                    print('ERROR: sq Queue full')
                     self.sq.queue.clear()
             except Exception as err:
-                print str(err)
+                print(str(err))
             statusqueueLock.release()
 
 
@@ -131,21 +136,21 @@ class myThread(threading.Thread):
             try:
                 self.conn.ping()
                 break
-            except Exception,e:
+            except Exception as e:
                 print('warning: mysql test ping fail')
                 print(str(e))
             try:
                 self.conn = mysql.connect(user=user, passwd=passwd, host=host, port=port, db=dbname, connect_timeout=connect_timeout, compress=compress, charset=charset)
                 self.cursor = self.conn.cursor()
                 break
-            except Exception,e:
+            except Exception as e:
                 print("mysql reconnect fail ...")
                 print(str(e))
                 time.sleep(3)
         try:
             self.cursor.execute(sql)
             self.conn.commit()
-        except Exception,e:
+        except Exception as e:
             print(str(e))
 
 
@@ -170,7 +175,7 @@ while True:
             iplistall = requests.get(iplistallurl, timeout=2).json()
         except Exception as err:
             time.sleep(10)
-            print 'ERROR: iplistall URL GET fail'
+            print('ERROR: iplistall URL GET fail')
             continue
         queueLock.acquire()
         try:
@@ -178,10 +183,10 @@ while True:
                 if ip not in notchecklist:
                     workQueue.put(ip, True, 2)
                     if workQueue.full():
-                        print 'ERROR: check host IP Queue %s full. clean IP Queue all' %(workQueue.qsize() )
+                        print('ERROR: check host IP Queue %s full. clean IP Queue all' %(workQueue.qsize() ))
                         workQueue.queue.clear()
         except Exception as err:
-            print str(err)
+            print(str(err))
         queueLock.release()
         time.sleep(15)
     else:
@@ -193,5 +198,4 @@ exitFlag = 1
 
 for t in threads:
     t.join()
-print "Exiting Main Thread"
-
+print("Exiting Main Thread")

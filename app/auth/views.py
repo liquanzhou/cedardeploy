@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+from __future__ import print_function
 from flask import render_template, redirect, url_for, flash, request, session
 from flask_login import login_user, logout_user, login_required, current_user
 import ldap
@@ -40,7 +41,7 @@ def login():
             return redirect(request.args.get('next') or url_for('main.index'))
 
         except Exception as err:
-            print str(err)
+            print(str(err))
     return render_template('login.html', form=form)
 
 
