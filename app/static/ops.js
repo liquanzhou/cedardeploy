@@ -24,7 +24,7 @@ $("body").on('click', '#del_project', function(){
             project: project
         }
         $.post('/del_project', param, function(data){
-            alert("删除项目 "+project+"  status: "+data.status);
+            alert("删除项目 "+project+"  status: "+data.status+" log: "+data.log);
             if (data.status == 'ok') {
                 project_list();
 
@@ -159,15 +159,11 @@ $("body").on('click', '#add_project', function(){
         }
 
         $.post('/add_project', param, function(data){
-            //alert('add_project status: '+add_project_name+' '+data.status);
-            //push_add_project_table();
+            alert(data.status+"  "+data.log);
             if(data.status == 'ok'){
-                alert('add_project status: '+data.status);
                 $('#project_div').html("");
                 $('#project_div').attr('status','close')
                 project_list();
-            }else{
-                alert('add_project status: '+data.status);
             }
         }, 'json');
     };
@@ -233,14 +229,11 @@ $("body").on('click', '#update_project', function(){
         }
 
         $.post('/update_project', param, function(data){
-
+            alert(data.status+"  "+data.log);
             if(data.status == 'ok'){
-                alert('update_project status: '+add_nproject+' '+data.status);
                 $('#project_div').html("");
                 $('#project_div').attr('status','close')
                 project_list();
-            }else{
-                alert('update_project status: '+add_nproject+' '+data.status);
             }
         }, 'json');
     };
@@ -367,7 +360,7 @@ $("body").on('click', '#add_host', function(){
         }
 
         $.post('/add_host', param, function(data){
-            alert('add host: '+add_ip+' status: '+data['status']);
+            alert(data.status+"  "+data.log);
         }, 'json');
 
         host_list_table(add_project)
@@ -387,7 +380,7 @@ $("body").on('click', '#add_servergroup', function(){
             permissions: permissions,
         }
         $.post('/adduserservicegroup', param, function(data){
-            alert('add user service group done');
+            alert(data.status+"  "+data.log);
             userservicegrouplist(username);
         }, 'json');
     };
@@ -404,7 +397,7 @@ $("body").on('click', '#delete_servergroup', function(){
             servicegroup: servicegroup,
         }
         $.post('/deleteuserservicegroup', param, function(data){
-            alert('delete user service group done');
+            alert(data.status+"  "+data.log);
             userservicegrouplist(username);
         }, 'json');
     };
@@ -419,7 +412,7 @@ $("body").on('click', '#delete_user', function(){
             deleteuser: username,
         }
         $.post('/delete_user', param, function(data){
-            alert('delete user '+username+' done');
+            alert(data.status+"  "+data.log);
             user_list();
         }, 'json');
     };
@@ -436,7 +429,7 @@ $("body").on('click', '#add_user', function(){
             password: password,
         }
         $.post('/add_user', param, function(data){
-            alert('add user '+username+' done');
+            alert(data.status+"  "+data.log);
             user_list();
         }, 'json');
     };
@@ -461,7 +454,7 @@ $("body").on('click', '#update_host', function(){
             variable6: variable6,
         }
         $.post('/update_host', param, function(data){
-            alert('update '+hostname+' done');
+            alert(data.status+"  "+data.log);
         }, 'json');
         host_list_table(project)
     }
@@ -477,7 +470,7 @@ $("body").on('click', '#del_host', function(){
             project: project,
         }
         $.post('/del_host', param, function(data){
-            alert('delete '+host+' done');
+            alert(data.status+"  "+data.log);
         }, 'json');
         host_list_table(project)
     }
@@ -487,7 +480,7 @@ $("body").on('click', '#del_host', function(){
 $("body").on('click', '#deploy_config', function(){
     var deploy_config_host = $(this).attr('host')
     var deploy_config_project = $(this).attr('project')
-    if (confirm('请确认部署: '+deploy_config_host)) {
+    if (confirm('警告: 配置文件改动会重启服务. 请确认!!!  '+deploy_config_host)) {
         var param = {
             host:    deploy_config_host,
             project: deploy_config_project,
@@ -1623,13 +1616,11 @@ $("body").on('click', '#update_config', function(){
         }
 
         $.post('/update_config', param, function(data){
+            alert(data.status+"  "+data.log);
             if(data.status == 'ok'){
-                alert('update_config status: '+project+' '+data.status);
                 $('#config_div').html("");
                 $('#config_div').attr('status','close')
                 project_list();
-            }else{
-                alert('update_config status: '+project+' '+data.status);
             }
         }, 'json');
     };
@@ -1907,7 +1898,7 @@ $("body").on('click', '#subworkorder', function(){
                 remarks:  remarks,
             };
             $.post('/add_workorder', param, function(data){
-                alert('add workorder '+project+' status: '+data['status']);
+                alert(data.status+"  "+data.log);
             }, 'json');
         }
         else{
@@ -1926,7 +1917,7 @@ $("body").on('click', '#downworkorder', function(){
             applicationtime: applicationtime
         }
         $.post('/update_workorder', param, function(data){
-            alert("已关闭 status: "+data.status);
+            alert(data.status+"  "+data.log);
             waitworkorder();
 
         }, 'json');

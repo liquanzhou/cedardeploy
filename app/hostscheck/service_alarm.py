@@ -21,7 +21,7 @@ from config import *
 
 mdb = mysql.connect(user=user, passwd=passwd, host=host, port=port, db=dbname, charset=charset)
 mdb.autocommit(True)
-c = db.cursor()
+c = mdb.cursor()
 
 
 timestamp = int(time.time())

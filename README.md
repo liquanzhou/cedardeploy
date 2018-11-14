@@ -5,13 +5,13 @@
 
    ![用户与组管理](https://github.com/liquanzhou/img/blob/master/cedardeploy/%E7%94%A8%E6%88%B7%E4%B8%8E%E7%BB%84%E7%AE%A1%E7%90%86.png "用户与组管理")
  
-   ![添加项目](https://github.com/liquanzhou/img/blob/master/cedardeploy/%E6%B7%BB%E5%8A%A0%E9%A1%B9%E7%9B%AE.png "添加项目")
+   ![添加项目](https://github.com/liquanzhou/img/blob/master/cedardeploy/111.jpeg "添加项目")
 
-   ![工单](https://github.com/liquanzhou/img/blob/master/cedardeploy/%E5%B7%A5%E5%8D%95.png "工单")
+   ![工单](https://github.com/liquanzhou/img/blob/master/cedardeploy/444.jpeg "工单")
 
-   ![发布页面](https://github.com/liquanzhou/img/blob/master/cedardeploy/%E5%8F%91%E5%B8%83%E9%A1%B5%E9%9D%A2.png "发布页面")
+   ![发布页面](https://github.com/liquanzhou/img/blob/master/cedardeploy/333.jpeg "发布页面")
 
-   ![日志](https://github.com/liquanzhou/img/blob/master/cedardeploy/%E6%97%A5%E5%BF%97.png "日志")
+   ![日志](https://github.com/liquanzhou/img/blob/master/cedardeploy/222.jpeg "日志")
 
    ![服务失败列表](https://github.com/liquanzhou/img/blob/master/cedardeploy/%E6%9C%8D%E5%8A%A1%E5%A4%B1%E8%B4%A5%E5%88%97%E8%A1%A8.png "服务失败列表")
 
@@ -37,12 +37,13 @@
 
     job           发布系统只负责同步目录,同时生成定时任务配置文件。传到远程主机cron.d目录，系统自动加载  # 下个版本更新
 
-    编译环境自行安装
-    配置文件如果需要分离,可在配置信息中定义,直接填文件,或者拉取地址.编译脚本中,自行写文件或者拉取配置.
-    程序启动方式,添加项目后,可看配置信息中生成的 supervisor 模板,如不可改动,请自行修改 app/main/forms.py 中模板
-    服务更新重启需要摘除与注册,请在 app/main/deploy.py 中函数自行实现. 添加发现服务 def increaseService ,  剔除服务 def removeService
-    自动扩容 app/main/views.py  扩容接口: /expansion . 缩容接口: /reduced . 可根据条件判断自行对接. 例:可通过发布系统获取项目对应列表,在通过监控拿到cpu使用,大于cpu60%扩容,低于30%缩容
-    其它项目类型,运维人员可与程序沟通清晰,制定仓库规则规范,项目统一,就可以自行定制扩展
+    编译: 编译环境自行安装
+    配置文件: 如果需要分离,可在配置信息中定义,直接填文件,或者拉取地址.编译脚本中,自行写文件或者拉取配置.
+    启动方式: 添加项目后,可看配置信息中生成的 supervisor 模板,如不可改动,请自行修改 app/main/forms.py 中模板
+    服务摘除与注册: 请在 app/main/deploy.py 中函数自行实现. 添加发现服务 def increaseService ,  剔除服务 def removeService
+    服务检查: 有supervisor的服务会检查supervisor状态. 没有会检查ssh状态.
+    自动扩容: app/main/views.py  扩容接口: /expansion . 缩容接口: /reduced . 可根据条件判断自行对接. 后续会更新其他项目基于监控条件触发,调用阿里云按量付费,自动扩容. 例:可通过发布系统获取项目对应列表,在通过监控拿到cpu使用,大于cpu60%扩容,低于30%缩容
+    其它项目类型: 运维人员可与程序沟通清晰,制定仓库规则规范,项目统一,就可以自行定制扩展
     注意： 以上类型,并不一定业务完全匹配,代码仓库目录结构,编译方式,同步目录过程先后,等都要与程序沟通清晰明确,逐一确定统一.  
     
 

@@ -27,7 +27,7 @@ sys.setdefaultencoding('utf8');
 logging.basicConfig(level=logging.DEBUG,
                 format='%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s %(message)s',
                 datefmt='%Y-%m-%d %H:%M:%S',
-                filename='%s/deploy_web.log' %log_path,
+                filename='%s/cedardeploy.log' %log_path,
                 filemode='a')
 
 
@@ -91,21 +91,23 @@ def portadmin():
 @main.route("/del_project", methods=["POST"])
 @login_required
 def del_project():
-    project = request.form.get('project', "null")
-    if project == "null":
-        return json.dumps({'status':"ERROR: project null"})
+    R = {'status':'ok', 'log':'', 'data':''}
     try:
+        project = request.form.get('project', 'null')
+        if project == 'null':
+            raise Exception('ERROR: project null')
         ones = serverinfo.query.filter(serverinfo.project_name == project).all()
         if len(ones) != 0:
-            return json.dumps({'status': 'ERROR: Please delete the host.'})
+            raise Exception('ERROR: Please delete the host.')
+
         serverinfo.query.filter(serverinfo.project_name == project).delete()
         projectinfo.query.filter(projectinfo.project_name == project).delete()
         project_config.query.filter(project_config.project_name == project).delete()
-    except:
-        return json.dumps({'status':"sql error"})
-
-    os.popen('mv %s/%s %s/%s.%s.del' %(project_path, project, project_path, project, time.strftime('%Y%m%d_%H%M'))).read()
-    return json.dumps({'status':"ok"})
+        os.popen('mv %s/%s %s/%s.%s.del' %(project_path, project, project_path, project, time.strftime('%Y%m%d_%H%M'))).read()
+    except Exception as err:
+        R['log'] = str(err)
+        R['status'] = 'fail'
+    return json.dumps(R)
 
 
 
@@ -188,34 +190,38 @@ def clean_git_cache():
 @main.route("/adduserservicegroup", methods=["GET", "POST"])
 @login_required
 def adduserservicegroup():
-    username = request.form.get("username","null").strip().split(' ')[0]
-    servicegroup = request.form.get("servicegroup","null").strip().split(' ')[0]
-    permissions = request.form.get("permissions","null").strip().split(' ')[0]
-    user = current_user.username
-    if user not in adminuser or username == '' or username == 'null' or servicegroup == '' or servicegroup == 'null':
-        return json.dumps({'status':'ERROR: The current user has no rights'})
+    R = {'status':'ok', 'log':'', 'data':''}
     try:
+        username = request.form.get("username","null").strip().split(' ')[0]
+        servicegroup = request.form.get("servicegroup","null").strip().split(' ')[0]
+        permissions = request.form.get("permissions","null").strip().split(' ')[0]
+        user = current_user.username
+        if user not in adminuser or username == '' or username == 'null' or servicegroup == '' or servicegroup == 'null':
+            raise Exception('ERROR: The current user has no rights')
         u = userservicegroup(username=username, servicegroup=servicegroup, permissions=permissions)
         db.session.add(u)
         db.session.commit()
-        return json.dumps({'status':'ok'})
-    except:
-        return json.dumps({'status':'sql error'})
+    except Exception as err:
+        R['log'] = str(err)
+        R['status'] = 'fail'
+    return json.dumps(R)
 
 
 
 @main.route("/deleteuserservicegroup", methods=["POST"])
 @login_required
 def deleteuserservicegroup():
-    user = request.form.get('user', "null")
-    servicegroup = request.form.get('servicegroup', "null")
-    if user == "null" or servicegroup == "null":
-        return json.dumps({'status':'user or servicegroup null'})
+    R = {'status':'ok', 'log':'', 'data':''}
     try:
+        user = request.form.get('user', 'null')
+        servicegroup = request.form.get('servicegroup', 'null')
+        if user == "null" or servicegroup == 'null':
+            raise Exception('ERROR: user or servicegroup null')
         userservicegroup.query.filter(userservicegroup.username == user, userservicegroup.servicegroup == servicegroup).delete()
-        return json.dumps({'status':'ok'})
-    except:
-        return json.dumps({'status':'sql error'})
+    except Exception as err:
+        R['log'] = str(err)
+        R['status'] = 'fail'
+    return json.dumps(R)
 
 
 @main.route("/group_list", methods=["GET", "POST"])
@@ -276,55 +282,39 @@ def userservicegrouplist():
 @main.route("/add_user", methods=["GET", "POST"])
 @login_required
 def add_user():
+    R = {'status':'ok', 'log':'', 'data':''}
     try:
-        adduser = request.form.get("adduser","null").strip().split(' ')[0]
-        password = request.form.get("password","null").strip().split(' ')[0]
+        adduser = request.form.get('adduser', 'null').strip().split(' ')[0]
+        password = request.form.get('password', 'null').strip().split(' ')[0]
         user = current_user.username
-        if user in adminuser and adduser != 'null' and adduser != '' and password != 'null' and password != '':
-            u = User(email='%s2014@xiaochuankeji.cn' %adduser, username='%s' %adduser, password=password)
-            User.query.filter(User.username == adduser).delete()
-            db.session.add(u)
-            db.session.commit()
-        else:
-            return json.dumps({'status':'ERROR: The current user has no rights'})
-        return json.dumps({'status':'add user %s done' %adduser})
-    except:
-        return json.dumps({'status':'sql error'})
-
-
-@main.route("/update_user", methods=["GET", "POST"])
-@login_required
-def update_user():
-    try:
-        updateuser = request.form.get("updateuser","null").strip().split(' ')[0]
-        password = request.form.get("password","null").strip().split(' ')[0]
-        user = current_user.username
-        if user in adminuser:
-            u = User(email='%s2014@xiaochuankeji.cn' %updateuser, username='%s' %updateuser, password=password)
-            User.query.filter(User.username == updateuser).delete()
-            db.session.add(u)
-            db.session.commit()
-        else:
-            return json.dumps({'status':'ERROR: The current user has no rights'})
-        return json.dumps({'status':'update user %s password done' %updateuser})
-    except:
-        return json.dumps({'status':'sql error'})
-
+        if adduser == 'null' or adduser == '' or password == 'null' or password == '':
+            raise Exception('ERROR: user or password null')
+        if user not in adminuser:
+            raise Exception('ERROR: The current user has no rights')
+        u = User(email='%s@cedar.cn' %adduser, username='%s' %adduser, password=password)
+        User.query.filter(User.username == adduser).delete()
+        db.session.add(u)
+        db.session.commit()
+    except Exception as err:
+        R['log'] = str(err)
+        R['status'] = 'fail'
+    return json.dumps(R)
 
 
 @main.route("/delete_user", methods=["GET", "POST"])
 @login_required
 def delete_user():
+    R = {'status':'ok', 'log':'', 'data':''}
     try:
         deleteuser = request.form.get("deleteuser","null").strip().split(' ')[0]
         user = current_user.username
-        if user in adminuser:
-            User.query.filter(User.username == deleteuser).delete()
-        else:
-            return json.dumps({'status':'ERROR: The current user has no rights'})
-        return json.dumps({'status':'delete user %s done' %deleteuser})
-    except:
-        return json.dumps({'status':'sql error'})
+        if user not in adminuser:
+            raise Exception('ERROR: The current user has no rights')
+        User.query.filter(User.username == deleteuser).delete()
+    except Exception as err:
+        R['log'] = str(err)
+        R['status'] = 'fail'
+    return json.dumps(R)
 
 
 
@@ -490,35 +480,33 @@ def config_info():
 @main.route("/add_project", methods=["POST"])
 @login_required
 def add_project():
-
-    project = request.form.get('project', "null").strip()
-    environment = request.form.get('environment', "null").strip()
-    git = request.form.get('git', "null").strip()
-    branch = request.form.get('branch', "null").strip()
-    program_type = request.form.get('type', "null").strip()
-    port = str(request.form.get('port', "0")).strip()
-    make = str(request.form.get('make', "null")).strip()
-    istag = request.form.get('istag', "null").strip()
-    isnginx = request.form.get('isnginx', "null").strip()
-    business = request.form.get('business', "null").strip()
-    ischeck = request.form.get('check', "null").strip()
-    checkurl = request.form.get('checkurl', "null").strip()
-    statuscode = request.form.get('statuscode', "null").strip()
-    if not port:
-        port = '0'
-
-    if project == "null" or environment == "null" or branch == "null" or program_type == "null" or git == "null" or istag == "null":
-        return json.dumps({'status':'parameter error'})
-
-    project_name = environment + '_' + project
+    R = {'status':'ok', 'log':'', 'data':''}
 
     try:
+        project = request.form.get('project', "null").strip()
+        environment = request.form.get('environment', "null").strip()
+        git = request.form.get('git', "null").strip()
+        branch = request.form.get('branch', "null").strip()
+        program_type = request.form.get('type', "null").strip()
+        port = str(request.form.get('port', "0")).strip()
+        make = str(request.form.get('make', "null")).strip()
+        istag = request.form.get('istag', "null").strip()
+        isnginx = request.form.get('isnginx', "null").strip()
+        business = request.form.get('business', "null").strip()
+        ischeck = request.form.get('check', "null").strip()
+        checkurl = request.form.get('checkurl', "null").strip()
+        statuscode = request.form.get('statuscode', "null").strip()
+        if not port:
+            port = '0'
+    
+        if project == "null" or environment == "null" or branch == "null" or program_type == "null" or git == "null" or istag == "null":
+            raise Exception('ERROR: parameter error')
+    
+        project_name = environment + '_' + project
+    
         ones = projectinfo.query.filter(projectinfo.project_name == project_name ).first()
-    except:
-        return json.dumps({'status':'projectinfo query sql error'})
-    if ones != None:
-        return json.dumps({'status':'project already exists'})
-    try:
+        if ones != None:
+            raise Exception('ERROR: project already exists')
         newproject = projectinfo(  project_name = project_name, 
                                    project = project, 
                                    environment = environment, 
@@ -536,53 +524,49 @@ def add_project():
                                 )
         db.session.add(newproject)
         db.session.commit()
-    except:
-        return json.dumps({'status':'add new project sql error!!!'})
-
-
-    config1  = ''
-    config2  = ''
-    config3  = ''
-    config4  = ''
-    config5  = ''
-    config6  = ''
-    config7  = ''
-    config8  = ''
-    config9  = ''
-    config10 = ''
-
-
-    if environment == 'online':
-        ZUIYOU_ENV = 'production'
-        projectenv = project
-    else:
-        ZUIYOU_ENV = environment
-        projectenv = '%s-%s' %(project, environment)
-
-    if program_type == 'python':
-        config3 = supervisor_python_conf
-    if program_type == 'nodejs':
-        config3 = supervisor_nodejs_conf
-    elif program_type == 'go' or program_type == 'golang':
-        config3 = supervisor_go_conf
-    elif program_type == 'sh':
-        config3 = supervisor_sh_conf
-    elif program_type == 'java':
-        config2 = catalina_sh
-        config3 = server_xml
-
-    config3 = config3.replace('$USER$', exec_user
-                    ).replace('$HOST_PATH$', host_path
-                    ).replace('$port$', port
-                    ).replace('$project$', project
-                    ).replace('$environment$',environment
-                    ).replace('$supervisor_log_path$', supervisor_log_path
-                    ).replace('$ZUIYOU_ENV$', ZUIYOU_ENV
-                    ).replace('$project-env$', projectenv
-                    ).replace('$ajpport$', str(int(port)-105)
-                    ).replace('$shutdownport$', str(int(port)-75)  )
-
-    try:
+    
+    
+        config1  = ''
+        config2  = ''
+        config3  = ''
+        config4  = ''
+        config5  = ''
+        config6  = ''
+        config7  = ''
+        config8  = ''
+        config9  = ''
+        config10 = ''
+    
+        if environment == 'online':
+            ZUIYOU_ENV = 'production'
+            projectenv = project
+        else:
+            ZUIYOU_ENV = environment
+            projectenv = '%s-%s' %(project, environment)
+    
+        if program_type == 'python':
+            config3 = supervisor_python_conf
+        if program_type == 'nodejs':
+            config3 = supervisor_nodejs_conf
+        elif program_type == 'go' or program_type == 'golang':
+            config3 = supervisor_go_conf
+        elif program_type == 'sh':
+            config3 = supervisor_sh_conf
+        elif program_type == 'java':
+            config2 = catalina_sh
+            config3 = server_xml
+    
+        config3 = config3.replace('$USER$', exec_user
+                        ).replace('$HOST_PATH$', host_path
+                        ).replace('$port$', port
+                        ).replace('$project$', project
+                        ).replace('$environment$',environment
+                        ).replace('$supervisor_log_path$', supervisor_log_path
+                        ).replace('$ZUIYOU_ENV$', ZUIYOU_ENV
+                        ).replace('$project-env$', projectenv
+                        ).replace('$ajpport$', str(int(port)-105)
+                        ).replace('$shutdownport$', str(int(port)-75)  )
+    
         configadd = project_config(  project_name = project_name, 
                                      config1 = config1, 
                                      config2 = config2, 
@@ -596,92 +580,98 @@ def add_project():
                                      config10 = config10 )
         db.session.add(configadd)
         db.session.commit()
-        return json.dumps({'status':'ok'})
-    except:
-        return json.dumps({'status':'projectinfo query sql error'})
 
+    except Exception as err:
+        R['log'] = str(err)
+        R['status'] = 'fail'
+    return json.dumps(R)
 
 
 @main.route("/add_host", methods=["POST"])
 @login_required
 def add_host():
-    project = request.form.get('project', "null").strip()
-    hostname = request.form.get('hostname', "null").strip()
-    host = request.form.get('host', "null").strip()
-    variable1 = request.form.get('variable1', "null").strip()
-    variable2 = request.form.get('variable2', "null").strip()
-    variable3 = request.form.get('variable3', "null").strip()
-    variable4 = request.form.get('variable4', "null").strip()
-    variable5 = request.form.get('variable5', "null").strip()
-    variable6 = request.form.get('variable6', "").strip()
-    variable7 = request.form.get('variable7', "null").strip()
-    variable8 = request.form.get('variable8', "null").strip()
-    variable9 = request.form.get('variable9', "null").strip()
-    if project == "null" or hostname == "null" or host == "null" or project == "" or hostname == "" or host == "":
-        return json.dumps({'status':'parameter error'})
+    R = {'status':'ok', 'log':'', 'data':''}
     try:
+        project = request.form.get('project', "null").strip()
+        hostname = request.form.get('hostname', "null").strip()
+        host = request.form.get('host', "null").strip()
+        variable1 = request.form.get('variable1', "null").strip()
+        variable2 = request.form.get('variable2', "null").strip()
+        variable3 = request.form.get('variable3', "null").strip()
+        variable4 = request.form.get('variable4', "null").strip()
+        variable5 = request.form.get('variable5', "null").strip()
+        variable6 = request.form.get('variable6', "").strip()
+        variable7 = request.form.get('variable7', "null").strip()
+        variable8 = request.form.get('variable8', "null").strip()
+        variable9 = request.form.get('variable9', "null").strip()
+        if project == "null" or hostname == "null" or host == "null" or project == "" or hostname == "" or host == "":
+            raise Exception('ERROR: parameter error')
         ones1 = serverinfo.query.filter(serverinfo.project_name == project, serverinfo.ip == host).all()
         if len(ones1) != 0:
-            return json.dumps({'status': 'WARNING: host exist.'})
-
+            raise Exception('ERROR: host exist.')
+    
         newserver = serverinfo(project, hostname, host, variable1, variable2, variable3, variable4, variable5, variable6, variable7, variable8, variable9)
         db.session.add(newserver)
         db.session.commit()
-
+    
         ones = projectinfo.query.filter(projectinfo.project_name == project ).first()
         ones1 = serverinfo.query.filter(serverinfo.project_name == project, serverinfo.ip == host).first()
         ones2 = project_config.query.filter(project_config.project_name == project ).first()
+    
+        hir = hostInit(project, host, ones.type)
+        if hir != 'ok':
+            raise Exception(hir)
+    
+        dcr = deployConfig(project, host, ones, ones1, ones2)
+        if dcr != 'ok':
+            raise Exception(dcr)
     except Exception as err:
-        return json.dumps({'status': str(err)})
-
-    hir = hostInit(project, host, ones.type)
-    if hir != 'ok':
-        return json.dumps({'status': hir })
-
-    dcr = deployConfig(project, host, ones, ones1, ones2)
-    return json.dumps({'status':dcr})
+        R['log'] = str(err)
+        R['status'] = 'fail'
+    return json.dumps(R)
 
 
 @main.route("/del_host", methods=["POST"])
 @login_required
 def del_host():
-    project = request.form.get('project', "null")
-    host = request.form.get('host', "null")
-    if project == "null" or host == "null":
-        return json.dumps({'status':'host null'})
+    R = {'status':'ok', 'log':'', 'data':''}
     try:
+        project = request.form.get('project', 'null')
+        host = request.form.get('host', 'null')
+        if project == 'null' or host == 'null':
+            raise Exception('ERROR: host null')
         serverinfo.query.filter(serverinfo.project_name == project, serverinfo.ip == host).delete()
-    except:
-        return json.dumps({'status':'sql error'})
-
-    shell_cmd = '''ssh -o StrictHostKeyChecking=no -o ConnectTimeout=2 %s@%s "mv %s/%s.conf  %s/%s.conf.%s.bak; supervisorctl reread;supervisorctl update"  
-                ''' %( exec_user, host, supervisor_conf_dir, project, supervisor_conf_dir, project, time.strftime('%Y%m%d_%H%M%S'))
-    Result = shellcmd(shell_cmd)
-    status = Result['status']
-    if status != 'ok':
-        return json.dumps({'status':Result['log']})
-    return json.dumps({'status':'ok'})
+        shell_cmd = '''ssh -o StrictHostKeyChecking=no -o ConnectTimeout=2 %s@%s "mv %s/%s.conf  %s/%s.conf.%s.bak; supervisorctl reread;supervisorctl update" ''' %( 
+                           exec_user, host, supervisor_conf_dir, project, supervisor_conf_dir, project, time.strftime('%Y%m%d_%H%M%S'))
+        Result = shellcmd(shell_cmd)
+        if Result['status'] != 'ok':
+            raise Exception(Result['log'])
+    except Exception as err:
+        R['log'] = str(err)
+        R['status'] = 'fail'
+    return json.dumps(R)
 
 
 @main.route("/update_host", methods=["POST"])
 @login_required
 def update_host():
-    project = request.form.get('project', "null").strip()
-    ip = request.form.get('hostip', "null").strip()
-    hostname = request.form.get('hostname', "null").strip()
-    variable1 = request.form.get('variable1', "null").strip()
-    variable2 = request.form.get('variable2', "null").strip()
-    variable3 = request.form.get('variable3', "null").strip()
-    variable4 = request.form.get('variable4', "null").strip()
-    variable5 = request.form.get('variable5', "null").strip()
-    variable6 = request.form.get('variable6', "").strip()
-    variable7 = request.form.get('variable7', "null").strip()
-    variable8 = request.form.get('variable8', "null").strip()
-    variable9 = request.form.get('variable9', "null").strip()
-
-    if project == "null" or ip == "null":
-        return json.dumps({'status':'host null'})
+    R = {'status':'ok', 'log':'', 'data':''}
     try:
+        project = request.form.get('project', 'null').strip()
+        ip = request.form.get('hostip', 'null').strip()
+        hostname = request.form.get('hostname', 'null').strip()
+        variable1 = request.form.get('variable1', 'null').strip()
+        variable2 = request.form.get('variable2', 'null').strip()
+        variable3 = request.form.get('variable3', 'null').strip()
+        variable4 = request.form.get('variable4', 'null').strip()
+        variable5 = request.form.get('variable5', 'null').strip()
+        variable6 = request.form.get('variable6', '').strip()
+        variable7 = request.form.get('variable7', 'null').strip()
+        variable8 = request.form.get('variable8', 'null').strip()
+        variable9 = request.form.get('variable9', 'null').strip()
+    
+        if project == 'null' or ip == 'null':
+            raise Exception('ERROR: host null')
         serverinfo.query.filter(  serverinfo.project_name == project, 
                                   serverinfo.ip == ip
                                ).update({
@@ -690,42 +680,34 @@ def update_host():
                                   "variable6":variable6
                                })
         db.session.commit()
-        return json.dumps({'status':'ok'})
-    except:
-        return json.dumps({'status':'sql error'})
+    except Exception as err:
+        R['log'] = str(err)
+        R['status'] = 'fail'
+    return json.dumps(R)
 
-
-@main.route("/update_hostname", methods=["POST"])
-def update_hostname():
-    ip = request.form.get('ip', "null").strip()
-    hostname = request.form.get('hostname', "null").strip()
-    if hostname == "null" or ip == "null":
-        return json.dumps({'status':'host or ip null'})
-    try:
-        serverinfo.query.filter(serverinfo.ip == ip).update({"hostname": hostname})
-        db.session.commit()
-        return json.dumps({'status':'ok'})
-    except:
-        return json.dumps({'status':'sql error'})
 
 
 @main.route("/deploy_config", methods=["POST"])
 @login_required
 def deploy_config():
-    project = request.form.get('project', "null")
-    host = request.form.get('host', "null")
-    if project == "null" or host == "null":
-        return json.dumps({'status':'host null'})
-
+    R = {'status':'ok', 'log':'', 'data':''}
     try:
+        project = request.form.get('project', 'null')
+        host = request.form.get('host', 'null')
+        if project == 'null' or host == 'null':
+            raise Exception('ERROR: host null')
+
         ones = projectinfo.query.filter(projectinfo.project_name == project ).first()
         ones1 = serverinfo.query.filter(serverinfo.project_name == project, serverinfo.ip == host).first()
         ones2 = project_config.query.filter(project_config.project_name == project ).first()
-    except:
-        return json.dumps({'status':'sql error'})
 
-    dcr = deployConfig(project, host, ones, ones1, ones2)
-    return json.dumps({'status':dcr})
+        dcr = deployConfig(project, host, ones, ones1, ones2)
+        if dcr != 'ok':
+            raise Exception(dcr)
+    except Exception as err:
+        R['log'] = str(err)
+        R['status'] = 'fail'
+    return json.dumps(R)
 
 
 @main.route("/deploy", methods=["POST"])
@@ -750,60 +732,38 @@ def deploy():
 
     R = {"output":"","taskid":taskid,"operation":operation,"hostlist":host,"project":project,"tag":tag,"status":"wait"}
 
-    if host == "null" and project == "null" and operation == "null":
-        R['output'] = 'ERROR: project or host or operation null'
-        R['status'] = 'fail'
-        return json.dumps(R)
-
-    if os.path.isfile(pkl_file):
-        R['output'] = 'WARNING: Repeat the update, Please wait'
-        R['status'] = 'fail'
-        return json.dumps(R)
-
     try:
+        if host == "null" and project == "null" and operation == "null":
+            raise Exception('ERROR: project or host or operation null')
+        if os.path.isfile(pkl_file):
+            raise Exception('WARNING: Repeat the update, Please wait')
         ones = projectinfo.query.filter(projectinfo.project_name == project ).all()
         Type = ones[0].type
         group = ones[0].business
         env = ones[0].environment
-    except Exception as err:
-        R['output'] = 'ERROR: project info null %s' % str(err)
-        R['status'] = 'fail'
-        return json.dumps(R)
-
-    if currentuser not in adminuser:
-        try:
+        if currentuser not in adminuser:
             ones1 = userservicegroup.query.filter(  userservicegroup.username == currentuser, 
                                                     userservicegroup.servicegroup == group 
                                                  ).all()
             permissions = ones1[-1].permissions
-        except:
-            R['output'] = 'ERROR: user not group permissions'
-            R['status'] = 'fail'
-            return json.dumps(R)
-
-        if env == "online" and permissions != 'online':
-            R['output'] = 'ERROR: user not online deploy permissions'
-            R['status'] = 'fail'
-            return json.dumps(R)
-
-        if operation == 'serviceUpdate' and env == "online" and group not in unlimit and not check_time():
-            R['output'] = 'ERROR: online deploy time: Working day  10:00-11:30.  14:00-17:30.  19:00-20:00'
-            R['status'] = 'fail'
-            return json.dumps(R)
-
-    online_update_file = open(pkl_file, 'wb')
-    cPickle.dump('%s %s %s' %(currentuser, operation, operating_time),online_update_file)
-    online_update_file.close()
-
-    s = os.system(   '''(cd %s/app/main/;nohup python deploy.py "%s" "%s" "%s" "%s" "%s" "%s" "%s") >>%s/%s.log 2>&1    &'''  
-                     %(sys.path[0], project, tag, taskid, host, operation, currentuser, 'reason', log_path, project) )
-    R['output'] = 'INFO: Please wait. %s in progress' %(operation)
-
-    newupdateoperation = updateoperation(taskid,  project, host, tag, operating_time, operation, R['output'], currentuser)
-    db.session.add(newupdateoperation)
-    db.session.commit()
-
+            if env == "online" and permissions != 'online':
+                raise Exception('ERROR: user not online deploy permissions')
+            if operation == 'serviceUpdate' and env == "online" and group not in unlimit and not check_time():
+                raise Exception('ERROR: online deploy time: Working day  10:00-11:30.  14:00-17:30.  19:00-20:00')
+        online_update_file = open(pkl_file, 'wb')
+        cPickle.dump('%s %s %s' %(currentuser, operation, operating_time),online_update_file)
+        online_update_file.close()
+        s = os.system(   '''(cd %s/app/main/;nohup python deploy.py "%s" "%s" "%s" "%s" "%s" "%s" "%s") >>%s/%s.log 2>&1    &'''  
+                         %(sys.path[0], project, tag, taskid, host, operation, currentuser, 'reason', log_path, project) )
+        R['output'] = 'INFO: Please wait. %s in progress' %(operation)
+        newupdateoperation = updateoperation(taskid,  project, host, tag, operating_time, operation, R['output'], currentuser)
+        db.session.add(newupdateoperation)
+        db.session.commit()
+    except Exception as err:
+        R['output'] = str(err)
+        R['status'] = 'fail'
     return json.dumps(R)
+    
 
 
 
@@ -920,26 +880,25 @@ def lastlog():
 @main.route("/update_project", methods=["POST"])
 @login_required
 def update_project():
-    project = request.form.get('project', "null").strip()
-    environment = request.form.get('environment', "null").strip()
-    git = request.form.get('git', "null").strip()
-    branch = request.form.get('branch', "null").strip()
-    program_type = request.form.get('type', "null").strip()
-    port = request.form.get('port', "0").strip()
-    make = request.form.get('make', "null").strip()
-    istag = request.form.get('istag', "null").strip()
-    isnginx = request.form.get('isnginx', "null").strip()
-    business = request.form.get('business', "null").strip()
-    ischeck = request.form.get('check', "null").strip()
-    checkurl = request.form.get('checkurl', "null").strip()
-    statuscode = request.form.get('statuscode', "null").strip()
-
-    if project == "null" or environment == "null" or branch == "null" or program_type == "null" or git == "null" or istag == "null":
-        return json.dumps({'status':'parameter error'})
-
+    R = {'status':'ok', 'log':'', 'data':''}
     try:
+        project = request.form.get('project', "null").strip()
+        environment = request.form.get('environment', "null").strip()
+        git = request.form.get('git', "null").strip()
+        branch = request.form.get('branch', "null").strip()
+        program_type = request.form.get('type', "null").strip()
+        port = request.form.get('port', "0").strip()
+        make = request.form.get('make', "null").strip()
+        istag = request.form.get('istag', "null").strip()
+        isnginx = request.form.get('isnginx', "null").strip()
+        business = request.form.get('business', "null").strip()
+        ischeck = request.form.get('check', "null").strip()
+        checkurl = request.form.get('checkurl', "null").strip()
+        statuscode = request.form.get('statuscode', "null").strip()
+        if project == "null" or environment == "null" or branch == "null" or program_type == "null" or git == "null" or istag == "null":
+            raise Exception('ERROR: parameter error')
         project_name = environment + '_' + project
-
+    
         projectinfo.query.filter(projectinfo.project_name == project_name).update({
                              "project" : project, 
                              "environment" : environment, 
@@ -957,29 +916,30 @@ def update_project():
                              })
 
         db.session.commit()
-        return json.dumps({'status':'ok'})
-    except:
-        return json.dumps({'status':'sql error'})
+    except Exception as err:
+        R['log'] = str(err)
+        R['status'] = 'fail'
+    return json.dumps(R)
 
 
 @main.route("/update_config", methods=["POST"])
 @login_required
 def update_config():
-    project_name = request.form.get('project', "null").strip()
-    config1 = request.form.get('config1', "null").strip()
-    config2 = request.form.get('config2', "null").strip()
-    config3 = request.form.get('config3', "null").strip()
-    config4 = request.form.get('config4', "null").strip()
-    config5 = request.form.get('config5', "null").strip()
-    config6 = request.form.get('config6', "null").strip()
-    config7 = request.form.get('config7', "null").strip()
-    config8 = request.form.get('config8', "null").strip()
-    config9 = request.form.get('config9', "null").strip()
-    config10 = request.form.get('config10', "null").strip()
-
-    if project_name == "null":
-        return json.dumps({'status':'project error'})
+    R = {'status':'ok', 'log':'', 'data':''}
     try:
+        project_name = request.form.get('project', "null").strip()
+        config1 = request.form.get('config1', "null").strip()
+        config2 = request.form.get('config2', "null").strip()
+        config3 = request.form.get('config3', "null").strip()
+        config4 = request.form.get('config4', "null").strip()
+        config5 = request.form.get('config5', "null").strip()
+        config6 = request.form.get('config6', "null").strip()
+        config7 = request.form.get('config7', "null").strip()
+        config8 = request.form.get('config8', "null").strip()
+        config9 = request.form.get('config9', "null").strip()
+        config10 = request.form.get('config10', "null").strip()
+        if project_name == "null":
+            raise Exception('ERROR: project error')
         project_config.query.filter(project_config.project_name == project_name).update({
                 "config1"  : config1, 
                 "config2"  : config2, 
@@ -993,9 +953,10 @@ def update_config():
                 "config10" : config10 })
 
         db.session.commit()
-        return json.dumps({'status':'ok'})
-    except:
-        return json.dumps({'status':'sql error'})
+    except Exception as err:
+        R['log'] = str(err)
+        R['status'] = 'fail'
+    return json.dumps(R)
 
 
 
@@ -1051,83 +1012,79 @@ def online_statistics():
 
 @main.route("/lock_check", methods=["GET", "POST"])
 def lock_check():
-    project = request.args.get('project', "null")
-
-    pkl_file = '%s/deploy.%s.lock' %(lock_path, project)
-
-    if os.path.isfile(pkl_file):
-        lock_file = open(pkl_file,'rb')
-        lock_user = cPickle.load(lock_file)
-        lock_file.close()
-
-        return json.dumps({'status':'fail','user':lock_user})
-    else:
-        return json.dumps({'status':'ok'})
-
+    R = {'status':'ok', 'log':'', 'data':'', 'user':''}
+    try:
+        project = request.args.get('project', "null")
+        pkl_file = '%s/deploy.%s.lock' %(lock_path, project)
+    
+        if os.path.isfile(pkl_file):
+            lock_file = open(pkl_file,'rb')
+            lock_user = cPickle.load(lock_file)
+            lock_file.close()
+            R['user'] = lock_user
+    except Exception as err:
+        R['log'] = str(err)
+        R['status'] = 'fail'
+    return json.dumps(R)
+    
 
 @main.route("/add_workorder", methods=["POST"])
 @login_required
 def add_workorder():
-    group = str(request.form.get('group', 'null')).strip()
-    project = str(request.form.get('project', 'null')).strip()
-    remarks = str(request.form.get('remarks', 'null')).strip()
-
-    if project == 'null':
-        return json.dumps({'status':'project null'})
-
-    user = current_user.username
-    applicationtime = str(time.time())
-    status = 'wait'
-    executor = ''
-    completiontime = ''
-
+    R = {'status':'ok', 'log':'', 'data':''}
     try:
+        group = str(request.form.get('group', 'null')).strip()
+        project = str(request.form.get('project', 'null')).strip()
+        remarks = str(request.form.get('remarks', 'null')).strip()
+    
+        if project == 'null':
+            raise Exception('ERROR: project null')
+    
+        user = current_user.username
+        applicationtime = str(time.time())
+        status = 'wait'
+        executor = ''
+        completiontime = ''
+    
         newworkorder = workorder( group, project, user, applicationtime, status, executor, completiontime, remarks)
-
         db.session.add(newworkorder)
         db.session.commit()
-
-    except Exception as err:
-        return json.dumps({'status':'ERROR: add new workorder sql error!!!'})
-    data = {
-            "msgtype": "text",
-            "text": {
-                "content": "%s\n%s 提交工单" %(project, user)
+    
+        data = {
+                "msgtype": "text",
+                "text": {
+                    "content": "%s\n%s 提交工单" %(project, user)
+                }
             }
-        }
-
-    headers = {'content-type': 'application/json'}
-    try:
+    
+        headers = {'content-type': 'application/json'}
         r = requests.post(url=sreRobot, data=json.dumps(data), headers=headers, timeout=2).json()
-        return json.dumps({'status':'INFO: add new workorder ok'})
     except Exception as err:
-        logging.error(str(err))
-        return json.dumps({'status':'ERROR: add new workorder dingding api error'})
+        R['log'] = str(err)
+        R['status'] = 'fail'
+    return json.dumps(R)
 
 
 
 @main.route("/update_workorder", methods=["POST"])
 @login_required
 def update_workorder():
-
-    applicationtime = str(request.form.get('applicationtime', 'null')).strip()
-
-    if project == 'null':
-        return json.dumps({'status':'project null'})
-
+    R = {'status':'ok', 'log':'', 'data':''}
     try:
+        applicationtime = str(request.form.get('applicationtime', 'null')).strip()
+        if project == 'null':
+            raise Exception('ERROR: project null')
         oldworkorder = workorder.query.filter(workorder.applicationtime == applicationtime).one()
         oldworkorder.status = 'done'
         oldworkorder.executor = current_user.username
         oldworkorder.completiontime = str(time.time())
-
         db.session.flush()
         db.session.commit()
-
-        return json.dumps({'status':'update workorder done'})
     except Exception as err:
-        logging.error(str(err))
-        return json.dumps({'status':'update workorder sql error!!!'})
+        R['log'] = str(err)
+        R['status'] = 'fail'
+    return json.dumps(R)
+
 
 
 
@@ -1190,13 +1147,11 @@ def expansion():
 
     logging.info(expansionInfo)
 
-    R = {"status":"ok","loginfo":expansionInfo,"taskid":taskid,"operation":operation,"host":host,"project":project,"tag":tag}
+    R = {"status":"ok","output":expansionInfo,"taskid":taskid,"operation":operation,"host":host,"project":project,"tag":tag}
 
-    if R['status'] == 'ok':
+    try:
         if project == "null" or host == "null" or host == "ecsIpFail":
-            R['loginfo'] = 'ERROR :expansion parameter null. %s' %(expansionInfo)
-            R['status'] = 'fail'
-    if R['status'] == 'ok':
+            raise Exception('ERROR: expansion parameter null. %s' %expansionInfo)
         shell_cmd = '''ssh -o StrictHostKeyChecking=no  -o ConnectTimeout=2 %s@%s "echo test" ''' %(exec_user, host)
         i=0
         while i<5:
@@ -1210,46 +1165,36 @@ def expansion():
                 i=i+1
                 time.sleep(5)
         if status != 'ok':
-            R['loginfo'] = 'ERROR :expansion host %s ssh fail.   %s' %(host, expansionInfo)
-            R['status'] = 'fail'
-    if R['status'] == 'ok':
-        try:
-            variable1 = ""
-            variable2 = ""
-            variable3 = ""
-            variable4 = ""
-            variable5 = ""
-            variable6 = ""
-            variable7 = ""
-            variable8 = ""
-            variable9 = ""
-            newserver = serverinfo(project, hostname, host, variable1, variable2, variable3, variable4, variable5, variable6, variable7, variable8, variable9)
-            db.session.add(newserver)
-            db.session.commit()
-            ones = projectinfo.query.filter(projectinfo.project_name == project ).first()
-            ones1 = serverinfo.query.filter(serverinfo.project_name == project, serverinfo.ip == host).first()
-            ones2 = project_config.query.filter(project_config.project_name == project ).first()
-        except Exception as err:
-            R['loginfo'] = 'ERROR: expansion sql error.  %s %s' % (expansionInfo, str(err) )
-            R['status'] = 'fail'
-    if R['status'] == 'ok':
+            raise Exception('ERROR: expansion host %s ssh fail. %s' %(host, expansionInfo))
+        variable1 = ""
+        variable2 = ""
+        variable3 = ""
+        variable4 = ""
+        variable5 = ""
+        variable6 = ""
+        variable7 = ""
+        variable8 = ""
+        variable9 = ""
+        newserver = serverinfo(project, hostname, host, variable1, variable2, variable3, variable4, variable5, variable6, variable7, variable8, variable9)
+        db.session.add(newserver)
+        db.session.commit()
+        ones = projectinfo.query.filter(projectinfo.project_name == project ).first()
+        ones1 = serverinfo.query.filter(serverinfo.project_name == project, serverinfo.ip == host).first()
+        ones2 = project_config.query.filter(project_config.project_name == project ).first()
         hir = hostInit(project, host, ones.type)
         if hir != 'ok':
-            R['loginfo'] = 'ERROR: expansion host init error.  %s %s' % (expansionInfo, hir )
-            R['status'] = 'fail'
-    if R['status'] == 'ok':
+            raise Exception('ERROR: expansion host init error.  %s %s' % (expansionInfo, hir ))
         dcr = deployConfig(project, host, ones, ones1, ones2)
         if dcr != 'ok':
-            R['loginfo'] = 'ERROR: expansion deploy config error.  %s %s' % (expansionInfo, dcr )
-            R['status'] = 'fail'
-    if R['status'] == 'ok':
+            raise Exception('ERROR: expansion deploy config error.  %s %s' % (expansionInfo, dcr ))
         s = os.system(   '''(nohup python %s/app/main/deploy.py "%s" "%s" "%s" "%s" "%s" "%s" "%s") >>%s/%s.log 2>&1    &'''
                         %(sys.path[0], project, tag, taskid, host, operation, currentuser, reason, log_path, project) )
-    else:
-        newupdatelog = updatelog(taskid,  project, host, tag, rtime, R['status'], R['loginfo'])
+    except Exception as err:
+        R['output'] = str(err)
+        R['status'] = 'fail'
+        newupdatelog = updatelog(taskid,  project, host, tag, rtime, R['status'], R['output'])
         db.session.add(newupdatelog)
         db.session.commit()
-
         headers = {'Content-Type':'application/json'}
         content = "%s\n%s: %s %s\nHost: %s\nReason: %s" %(rtime, project, operation, R['status'], host, reason)
 
@@ -1259,65 +1204,48 @@ def expansion():
                     "content": content
                 }
             }
-
         try:
             requests.post(url=sreRobot, headers=headers, data=json.dumps(ExpansionHost))
         except Exception as err:
             logging.error(str(err))
-
     try:
-        newupdateoperation = updateoperation(taskid, project, host, tag, rtime, operation, R['loginfo'], currentuser)
+        newupdateoperation = updateoperation(taskid, project, host, tag, rtime, operation, R['output'], currentuser)
         db.session.add(newupdateoperation)
         db.session.commit()
     except Exception as err:
         logging.error(str(err))
-
     return json.dumps(R)
-
 
 
 @main.route("/reduced", methods=["POST"])
 def reduced():
-
-    project = request.form.get('project', "null")
-    host = request.form.get('host', "null")
-    reason = request.form.get('reason', "null")
-    operation = 'scaleDown'
-
-    if project != "null" and host != "null":
-        try:
-            serverinfo.query.filter(serverinfo.project_name == project, serverinfo.ip == host).delete()
-
-            shell_cmd = '''ssh -o StrictHostKeyChecking=no -o ConnectTimeout=2 %s@%s "mv %s/%s.conf  %s/%s.conf.%s.bak; supervisorctl reread;supervisorctl update"  
-                        ''' %( exec_user, host, supervisor_conf_dir, project, supervisor_conf_dir, project, time.strftime('%Y%m%d_%H%M%S'))
-            Result = shellcmd(shell_cmd)
-            status = Result['status']
-            if status != 'ok':
-                status = 'fail'
-                loginfo = 'ERROR: %s %s delete supervisor conf fail. %s' %(project, host, Result['log'])
-            loginfo = 'INFO: %s %s delete done' %(project, host)
-        except:
-            loginfo = 'ERROR: %s %s sql delete fail' %(project, host)
-            status = 'fail'
-    else:
-        status = 'fail'
-        loginfo = 'ERROR: project or host null'
-
-    headers = {'Content-Type':'application/json'}
-    endtime = time.strftime('%Y-%m-%d %H:%M:%S')
-    content = "%s\n%s: %s %s\nHost: %s\nReason: %s" %(endtime, project, operation, status, host, reason)
-
-    ExpansionHost = {
-            "msgtype": "text",
-            "text": {
-                "content": content
-            }
-        }
-
     try:
+        project = request.form.get('project', "null")
+        host = request.form.get('host', "null")
+        reason = request.form.get('reason', "null")
+        operation = 'scaleDown'
+        R = {'status':'ok', 'log':'', 'data':'', 'project':project, 'host':host}
+        if project == "null" or host == "null":
+            raise Exception('ERROR: project or host null')
+        logging.info('INFO: %s %s reduced' %(project, host))
+        serverinfo.query.filter(serverinfo.project_name == project, serverinfo.ip == host).delete()
+        shell_cmd = '''ssh -o StrictHostKeyChecking=no -o ConnectTimeout=2 %s@%s "mv %s/%s.conf  %s/%s.conf.%s.bak; supervisorctl reread;supervisorctl update"  ''' %( 
+                           exec_user, host, supervisor_conf_dir, project, supervisor_conf_dir, project, time.strftime('%Y%m%d_%H%M%S'))
+        Result = shellcmd(shell_cmd)
+        if Result['status'] != 'ok':
+            raise Exception('ERROR: %s %s delete supervisor conf fail. %s' %(project, host, Result['log']))
+        headers = {'Content-Type':'application/json'}
+        endtime = time.strftime('%Y-%m-%d %H:%M:%S')
+        content = "%s\n%s: %s %s\nHost: %s\nReason: %s" %(endtime, project, operation, R['status'], host, reason)
+        ExpansionHost = {
+                "msgtype": "text",
+                "text": {
+                    "content": content
+                }
+            }
         requests.post(url=sreRobot, headers=headers, data=json.dumps(ExpansionHost))
     except Exception as err:
-        logging.error(str(err))
+        R['log'] = str(err)
+        R['status'] = 'fail'
+    return json.dumps(R)
 
-    logging.info(loginfo)
-    return json.dumps({'status':status,'log':loginfo,'project':project,'host':host})

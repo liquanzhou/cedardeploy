@@ -94,6 +94,8 @@ class myThread(threading.Thread):
                 if hoststatus['status'] == 'ok':
                     DR['sshStatus'] = 'SSHOK' 
                     for s in hoststatus['log'].strip().split('\n'):
+                        if s.strip() == '':
+                            continue
                         project = s.split()[0].split(':')[0]
                         status = s.split()[1]
                     
@@ -106,7 +108,7 @@ class myThread(threading.Thread):
                     DR['sshStatus'] = 'SSHFAIL' 
             except Exception as err:
                 DR['sshStatus'] = 'UNKNOWN' 
-                print(str(err))
+                print('ERROR: %s, %s' %(str(err), hoststatus['log']))
 
             statusqueueLock.acquire()
             try:

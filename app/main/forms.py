@@ -1,5 +1,16 @@
 #!/usr/bin/env python
 # coding: utf-8
+import json
+import time
+import sys
+import os
+import subprocess
+import datetime
+import requests
+import socket
+import commands
+import random
+from app.config import *
 
 import logging
 import subprocess
@@ -24,14 +35,11 @@ def shellcmd(shell_cmd):
     s = subprocess.Popen( shell_cmd , shell=True, stdin = subprocess.PIPE, stdout = subprocess.PIPE, stderr = subprocess.PIPE  )
     loginfo, stderr = s.communicate()
     return_status = s.returncode
-    logging.info(loginfo)
-    logging.info(stderr)
     if return_status == 0:
         status = 'ok'
     else:
         loginfo = loginfo + '\n' + stderr
         status = 'fail'
-    logging.info(status)
     return {'status':status,'log':loginfo}
 
 
@@ -69,13 +77,13 @@ def deployConfig(project, host, ones, ones1, ones2):
                            supervisor_conf_path, remote_supervisor_conf_path)
             Result = shellcmd(shell_cmd)
             if Result['status'] != 'ok':
-                return Result['log']
+                raise Exception(Result['log'])
 
             shell_cmd = '''ssh -o StrictHostKeyChecking=no -o ConnectTimeout=2 %s@%s "supervisorctl reread;supervisorctl update" ''' %(
                            exec_user, host)
             Result = shellcmd(shell_cmd)
             if Result['status'] != 'ok':
-                return Result['log']
+                raise Exception(Result['log'])
 
         elif ones.type == 'java':
             # tomcat server.xml
@@ -88,7 +96,7 @@ def deployConfig(project, host, ones, ones1, ones2):
                            server_xml_path, remote_server_xml_path)
             Result = shellcmd(shell_cmd)
             if Result['status'] != 'ok':
-                return Result['log']
+                raise Exception(Result['log'])
 
             # tomcat catalina.sh
             catalina_sh_path = '%s/%s_%s_catalina.sh' %(project_path, project, host)
@@ -102,14 +110,14 @@ def deployConfig(project, host, ones, ones1, ones2):
                            catalina_sh_path, remote_catalina_sh_path)
             Result = shellcmd(shell_cmd)
             if Result['status'] != 'ok':
-                return Result['log']
-
+                raise Exception(Result['log'])
         return 'ok'
     except Exception as err:
         return str(err)
 
 
-
+crontab_conf = '''#01 01 * * * $HOST_PATH$$environment$_$project$/deploy_start.sh >> $supervisor_log_path$/$environment$_$project$.log  2>&1 
+'''
 
 
 config_list = '''
