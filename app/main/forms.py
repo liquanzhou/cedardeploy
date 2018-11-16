@@ -12,9 +12,6 @@ import commands
 import random
 from app.config import *
 
-import logging
-import subprocess
-import time
 
 
 def check_time():

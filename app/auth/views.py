@@ -27,15 +27,15 @@ def login():
             if Ldap:
                 my_ldap = ldap.initialize(LDAP_HOST)
                 my_ldap.simple_bind_s("uid=%s,%s" %(username, LDAP_BASE), pwd)
+                if user is None:
+                    user = User(email='%s@xc.cn' %username, username=username,password=pwd)
+                    db.session.add(user)
+                    db.session.commit()
+                    user = User.query.filter_by(username=username).first()
             else:
                 if not user.check_password(pwd):
                     raise Exception("user passwd error")
 
-            if user is None:
-                user = User(email='%s2014@xiaochuankeji.cn' %username, username='%s' %username,password=pwd)
-                db.session.add(user)
-                db.session.commit()
-                user = User.query.filter_by(username=username).first()
             login_user(user, form.remember_me.data)
             session.permanent = True
             return redirect(request.args.get('next') or url_for('main.index'))
