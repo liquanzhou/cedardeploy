@@ -640,6 +640,8 @@ def del_host():
         host = request.form.get('host', 'null')
         if project == 'null' or host == 'null':
             raise Exception('ERROR: host null')
+        currentuser = current_user.username
+        logging.warning('del_host: %s, %s, %s' %(currentuser, project, host) )
         serverinfo.query.filter(serverinfo.project_name == project, serverinfo.ip == host).delete()
         shell_cmd = '''ssh -o StrictHostKeyChecking=no -o ConnectTimeout=2 %s@%s "mv %s/%s.conf  %s/%s.conf.%s.bak; supervisorctl reread;supervisorctl update" ''' %( 
                            exec_user, host, supervisor_conf_dir, project, supervisor_conf_dir, project, time.strftime('%Y%m%d_%H%M%S'))
@@ -672,6 +674,8 @@ def update_host():
     
         if project == 'null' or ip == 'null':
             raise Exception('ERROR: host null')
+        currentuser = current_user.username
+        logging.warning('update_host: %s, %s, %s' %(currentuser, project, ip) )
         serverinfo.query.filter(  serverinfo.project_name == project, 
                                   serverinfo.ip == ip
                                ).update({
@@ -898,6 +902,13 @@ def update_project():
         if project == "null" or environment == "null" or branch == "null" or program_type == "null" or git == "null" or istag == "null":
             raise Exception('ERROR: parameter error')
         project_name = environment + '_' + project
+
+        currentuser = current_user.username
+        if currentuser not in adminuser:
+            raise Exception('ERROR: update_project no authority')
+
+        logging.warning('update_project: %s, %s, %s, %s, %s, %s, %s, %s' %(
+                currentuser, project_name, git, branch, program_type, port, make, business) )
     
         projectinfo.query.filter(projectinfo.project_name == project_name).update({
                              "project" : project, 
@@ -940,6 +951,8 @@ def update_config():
         config10 = request.form.get('config10', "null").strip()
         if project_name == "null":
             raise Exception('ERROR: project error')
+        currentuser = current_user.username
+        logging.warning('update_config: %s, %s' %(currentuser, project_name) )
         project_config.query.filter(project_config.project_name == project_name).update({
                 "config1"  : config1, 
                 "config2"  : config2, 
