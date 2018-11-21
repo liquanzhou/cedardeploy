@@ -641,6 +641,8 @@ def del_host():
         if project == 'null' or host == 'null':
             raise Exception('ERROR: host null')
         currentuser = current_user.username
+        if currentuser not in adminuser and project.startswith('online_'):
+            raise Exception('ERROR: No authority')
         logging.warning('del_host: %s, %s, %s' %(currentuser, project, host) )
         serverinfo.query.filter(serverinfo.project_name == project, serverinfo.ip == host).delete()
         shell_cmd = '''ssh -o StrictHostKeyChecking=no -o ConnectTimeout=2 %s@%s "mv %s/%s.conf  %s/%s.conf.%s.bak; supervisorctl reread;supervisorctl update" ''' %( 
@@ -904,7 +906,7 @@ def update_project():
         project_name = environment + '_' + project
 
         currentuser = current_user.username
-        if currentuser not in adminuser:
+        if currentuser not in adminuser and environment == 'online':
             raise Exception('ERROR: update_project no authority')
 
         logging.warning('update_project: %s, %s, %s, %s, %s, %s, %s, %s' %(
