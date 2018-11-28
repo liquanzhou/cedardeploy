@@ -1,6 +1,7 @@
 # 前言
 
 基于ssh-key,git仓库,supervisor服务管理. 
+
 代码逻辑和技术实现简单,无需专业运维开发功底,会点python的运维即可上手维护源码,自定义与公司业务相关的功能,自行发挥.
 
     python,flask,js,mysql,ldap
@@ -25,12 +26,12 @@
     
     用户分组管理权限
     
-    可对接自动扩容和缩容
+    对接自动扩容和缩容
     
 
 
-   ![用户与组管理](https://github.com/liquanzhou/img/blob/master/cedardeploy/%E7%94%A8%E6%88%B7%E4%B8%8E%E7%BB%84%E7%AE%A1%E7%90%86.png "用户与组管理")
- 
+# 发布系统界面
+
    ![添加项目](https://github.com/liquanzhou/img/blob/master/cedardeploy/111.jpeg "添加项目")
 
    ![工单](https://github.com/liquanzhou/img/blob/master/cedardeploy/444.jpeg "工单")
@@ -39,9 +40,8 @@
 
    ![日志](https://github.com/liquanzhou/img/blob/master/cedardeploy/222.jpeg "日志")
 
-   ![服务失败列表](https://github.com/liquanzhou/img/blob/master/cedardeploy/%E6%9C%8D%E5%8A%A1%E5%A4%B1%E8%B4%A5%E5%88%97%E8%A1%A8.png "服务失败列表")
 
-
+# 发布过程介绍
 支持编译发布的项目类型,每个项目都需要填git地址,jobs,sh,static也是需要统一的git仓库管理.
 
     
