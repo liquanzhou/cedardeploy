@@ -360,11 +360,9 @@ $("body").on('click', '#add_host', function(){
         }
 
         $.post('/add_host', param, function(data){
+            host_list_table(add_project)
             alert(data.status+"  "+data.log);
         }, 'json');
-
-        host_list_table(add_project)
-        push_add_host_table(add_project)
     };
 });
 
@@ -454,9 +452,9 @@ $("body").on('click', '#update_host', function(){
             variable6: variable6,
         }
         $.post('/update_host', param, function(data){
+            host_list_table(project)
             alert(data.status+"  "+data.log);
         }, 'json');
-        host_list_table(project)
     }
 });
 
@@ -470,9 +468,9 @@ $("body").on('click', '#del_host', function(){
             project: project,
         }
         $.post('/del_host', param, function(data){
+            host_list_table(project)
             alert(data.status+"  "+data.log);
         }, 'json');
-        host_list_table(project)
     }
 });
 
@@ -486,9 +484,9 @@ $("body").on('click', '#deploy_config', function(){
             project: deploy_config_project,
         }
         $.post('/deploy_config', param, function(data){
+            host_list_table(deploy_config_project)
             alert('deploy config '+deploy_config_host+' status: '+data['status']);
         }, 'json');
-        host_list_table(deploy_config_project)
     }
 });
 
