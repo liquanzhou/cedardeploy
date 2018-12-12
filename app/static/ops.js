@@ -896,9 +896,11 @@ function host_list_table(p){
                         if (data[0][3]=='python' || data[0][3]=='nodejs'){
                             htm.push('<td>'+data[i][4]+'</td>');
                         }
-                        if(data[i][5] == "RUNNING" || data[i][5] == "SSHOK"){
+                        if(data[i][5] == "RUNNING"){
                             htm.push('<td><div id="status'+data[i][0].replace(/\./g,"-")+'" class="sidebar-menu"><font color="Lime">'+data[i][5]+'</font></div></td>');
-                        }else{
+                        } else if(data[i][5] == "SSHOK"){
+                            htm.push('<td><div id="status'+data[i][0].replace(/\./g,"-")+'" class="sidebar-menu"><font color="#FF9900">'+data[i][5]+'</font></div></td>');
+                        } else {
                             htm.push('<td><div id="status'+data[i][0].replace(/\./g,"-")+'" class="sidebar-menu"><font color="red">'+data[i][5]+'</font></div></td>');
                         }
                         htm.push('<td><div id="checkTime'+data[i][0].replace(/\./g,"-")+'" class="sidebar-menu">'+data[i][8]+'</div></td>');
@@ -924,8 +926,10 @@ function host_list_table(p){
                         if (data[0][3]=='nodejs' || data[0][3]=='python'){
                             htm.push('<td>'+'<input type="text" class="form-control" id="variable1'+i+'" placeholder="variable1" value="'+data[i][4]+'">'+'</td>');
                         }
-                        if(data[i][5] == "RUNNING" || data[i][5] == "SSHOK"){
+                        if(data[i][5] == "RUNNING"){
                             htm.push('<td>'+'<font color="Lime">'+data[i][5]+'</font>'+'</td>');
+                        } else if(data[i][5] == "SSHOK"){
+                            htm.push('<td>'+'<font color="#FF9900">'+data[i][5]+'</font>'+'</td>');
                         }else{
                             htm.push('<td>'+'<font color="red">'+data[i][5]+'</font>'+'</td>');
                         }
@@ -949,9 +953,11 @@ function host_list_status(p){
     $.getJSON('/hostlist', param,  function(data){
         if (data!='' && data!=undefined && data!=null){
             for(var i=0,len=data.length; i<len; i++){
-                if(data[i][5] == "RUNNING" || data[i][5] == "SSHOK"){
+                if(data[i][5] == "RUNNING"){
                     $('#status'+data[i][0].replace(/\./g,"-")).html('<font color="Lime">'+data[i][5]+'</font>');
-                }else{
+                } else if(data[i][5] == "SSHOK"){
+                    $('#status'+data[i][0].replace(/\./g,"-")).html('<font color="#FF9900">'+data[i][5]+'</font>');
+                } else {
                     $('#status'+data[i][0].replace(/\./g,"-")).html('<font color="red">'+data[i][5]+'</font>');
                 }
                 $('#checkTime'+data[i][0].replace(/\./g,"-")).html(data[i][8]);
