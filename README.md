@@ -169,7 +169,7 @@
 
     如果都启动正常, 检查服务也正常启动, 可以配置定时任务报警
 
-    * * * * * python /app/deploy/app/hostscheck/service_alarm.py >> /data/log/service_alarm.log 2>&1
+    * * * * * cd /app/deploy/app/hostscheck/;python service_alarm.py >> /data/log/service_alarm.log 2>&1
 
 
 

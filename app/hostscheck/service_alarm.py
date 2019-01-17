@@ -1,5 +1,5 @@
 # deploy service check
-#* * * * * python /app/opsdeploy/app/hostscheck/service_alarm.py >> /data/log/service_alarm.log 2>&1
+#* * * * * cd /app/opsdeploy/app/hostscheck/;python service_alarm.py >> /data/log/service_alarm.log 2>&1
 import sys, os, re
 import MySQLdb as mysql
 import json
