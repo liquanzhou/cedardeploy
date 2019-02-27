@@ -779,6 +779,9 @@ class Deploy:
         if self.environment != 'online':
             self.addlog('INFO: not auto test\n')
             return 'not auto test'
+        if self.operation == 'serviceFallback':
+            self.addlog('INFO: serviceFallback not auto test\n')
+            return 'INFO: serviceFallback not auto test'
         if self.project in self.autolist:
             data = {'biz':self.project, 'host': self.host, 'port': self.port, 'way':1}
             try:

@@ -78,7 +78,7 @@ class projectinfo(db.Model):
     project = db.Column(db.String(64))
     environment = db.Column(db.String(64))
     branch = db.Column(db.String(64))
-    type = db.Column(db.String(10))
+    type = db.Column(db.String(50))
     git = db.Column(db.String(1024))
     port = db.Column(db.Integer)
     make = db.Column(db.Text)
