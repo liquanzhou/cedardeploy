@@ -1177,7 +1177,8 @@ function projectall(){
         for(var i=0,len=data.length; i<len; i++){
             htm.push('<tr>');
             htm.push('<td>'+data[i][0]+'</td>');
-            htm.push('<td>'+data[i][1]+'</td>');
+            //htm.push('<td>'+data[i][1]+'</td>');
+            htm.push('<td><a href="/online?group='+data[i][0]+'&project='+data[i][1]+'" target="_blank">'+data[i][1]+'</a></td>');
             htm.push('<td>'+data[i][2]+'</td>');
             htm.push('</tr>');
         }

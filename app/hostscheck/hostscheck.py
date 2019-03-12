@@ -45,7 +45,7 @@ class myThread(threading.Thread):
                 statusqueueLock.release()
                 continue
             try:
-                data = self.sq.get(True, 2)
+                data = self.sq.get(False)
             except Exception as err:
                 statusqueueLock.release()
                 print(str(err))
@@ -88,7 +88,7 @@ class myThread(threading.Thread):
             CheckTime = time.strftime('%Y%m%d_%H:%M')
             DR = {'IP': IP, 'CheckTime': CheckTime, 'sshStatus': '', 'Projects': {} }
             try:
-                shell_cmd = '''ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5 %s@%s "superctl status" |awk '{print $1, $2}' ''' %(exec_user, IP)
+                shell_cmd = '''ssh -o StrictHostKeyChecking=no -o ConnectTimeout=2 %s@%s "superctl status" |awk '{print $1, $2}' ''' %(exec_user, IP)
                 hoststatus = self.exec_shell(shell_cmd)
 
                 if hoststatus['status'] == 'ok':
@@ -112,7 +112,7 @@ class myThread(threading.Thread):
 
             statusqueueLock.acquire()
             try:
-                self.sq.put(DR, True, 2)
+                self.sq.put(DR, False)
                 if self.sq.full():
                     print('ERROR: sq Queue full')
                     self.sq.queue.clear()

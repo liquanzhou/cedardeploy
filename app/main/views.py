@@ -754,7 +754,7 @@ def deploy():
             permissions = ones1[-1].permissions
             if env == "online" and permissions != 'online':
                 raise Exception('ERROR: user not online deploy permissions')
-            if operation == 'serviceUpdate' and env == "online" and group not in unlimit and not check_time():
+            if operation == 'serviceUpdate' and env == "online" and group not in unlimit and project not in unlimitProject and not check_time():
                 raise Exception('ERROR: online deploy time: Working day  10:00-11:30.  14:00-17:30.  19:00-20:00')
         online_update_file = open(pkl_file, 'wb')
         cPickle.dump('%s %s %s' %(currentuser, operation, operating_time),online_update_file)

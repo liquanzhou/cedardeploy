@@ -66,6 +66,7 @@ notcheckhost = ['172.10.0.172', '172.20.20.80']
 
 # 不限制上线时间的组 组名
 unlimit = ['offline', 'sre', 'op', 'web']
+unlimitProject = ['test_project']
 
 autotestURL = 'http://10.10.10.10/deploy/check'
 # 需要自动测试的项目 项目名

@@ -339,8 +339,8 @@ class Deploy:
 
     def getlasttag(self):
         sql = "SELECT `tag`,`loginfo` FROM `updateoperation`   \
-                      WHERE project_name = '%s' and operation = 'serviceUpdate' \
-                      order by taskid desc limit 1;" % (self.project)
+                      WHERE project_name = '%s' and operation = 'serviceUpdate' and tag != '%s' \
+                      order by taskid desc limit 1;" % (self.project, self.tag)
         c.execute(sql)
         ones = c.fetchall()
         if ones:
