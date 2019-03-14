@@ -78,7 +78,7 @@ class myThread(threading.Thread):
                 time.sleep(2)
                 continue
             try:
-                IP = self.q.get(True, 2)
+                IP = self.q.get(False)
             except Exception as err:
                 queueLock.release()
                 print(str(err))
@@ -181,7 +181,7 @@ while True:
         try:
             for ip in iplistall:
                 if ip not in notchecklist:
-                    workQueue.put(ip, True, 2)
+                    workQueue.put(ip, False)
                     if workQueue.full():
                         print('ERROR: check host IP Queue %s full. clean IP Queue all' %(workQueue.qsize() ))
                         workQueue.queue.clear()
