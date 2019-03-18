@@ -640,13 +640,13 @@ function project_list(p){
             for(var i=0,len=h.length; i<len; i++){
 
                 if(functype == "online"){
-                    htm.push('<li ><a class="host_list" data-project='+h[i]+'><i class="icon-user"></i>');
+                    htm.push('<li ><a class="host_list" style="cursor:pointer;" data-project='+h[i]+'><i class="icon-user"></i>');
                 }
                 if(functype == "project_admin"){
-                    htm.push('<li ><a class="host_list_admin" data-project='+h[i]+'><i class="icon-user"></i>');
+                    htm.push('<li ><a class="host_list_admin" style="cursor:pointer;" data-project='+h[i]+'><i class="icon-user"></i>');
                 }
                 if(functype == "online_log"){
-                    htm.push('<li ><a class="online_log_time" data-project='+h[i]+'><i class="icon-user"></i>');
+                    htm.push('<li ><a class="online_log_time" style="cursor:pointer;" data-project='+h[i]+'><i class="icon-user"></i>');
                 }
                 htm.push('<p class="text-success">'+h[i]+'</p>');
                 htm.push('</a></li>');
