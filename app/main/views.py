@@ -173,6 +173,25 @@ def rmpkl():
     return json.dumps(['ok'])
 
 
+@main.route("/killtask", methods=["GET", "POST"])
+@login_required
+def killtask():
+    R = {'status':'ok', 'log':'', 'data':''}
+    project = request.args.get("project","null")
+    if project == "null":
+       return json.dumps(['project null'])
+    shell_cmd = '''ps -eaf |grep deploy.py|grep -v grep |grep %s |awk '{print $2}' |xargs -i -t kill -9 {} ''' % (project)
+    Result = shellcmd(shell_cmd)
+    R['log'] = Result['log']
+    R['status'] = Result['status']
+    pkl_file = '%s/deploy.%s.lock' %(lock_path, project)
+    try:
+        os.remove(pkl_file)
+    except:
+        pass
+    return json.dumps(R)
+
+
 @main.route("/clean_git_cache", methods=["GET", "POST"])
 @login_required
 def clean_git_cache():
@@ -729,7 +748,7 @@ def deploy():
 
     if operation == 'serviceUpdate':
         tag = '%s-%s' %(project.split('_')[0], time.strftime('%Y%m%d_%H-%M-%S',time.localtime( int(float(taskid)) ) ) )
-    elif operation == 'serviceFallback':
+    elif operation == 'serviceFallback' or operation == 'serviceFastback':
         tag = request.form.get("tag","null")
     else:
         tag = "null"
@@ -814,7 +833,7 @@ def online_log_all():
     try:
         ones = updateoperation.query.filter(  updateoperation.project_name.like('online_%'), 
                                               updateoperation.taskid>int(time.time())-604800, 
-                                              updateoperation.operation.in_ ([ 'serviceUpdate','serviceFallback','serviceRestart','serviceExpansion','serviceFastrestart']) 
+                                              updateoperation.operation.in_ ([ 'serviceUpdate','serviceFastback','serviceFallback','serviceRestart','serviceExpansion','serviceFastrestart']) 
                                            ).order_by(updateoperation.taskid.desc()).all()
     except:
         return json.dumps([['null', 'null', 'null', 'null', 'ERROR: SQL not correct']])
@@ -851,7 +870,7 @@ def current_tag():
         return json.dumps(['ERROR: project null'])
     try:
         ones = updateoperation.query.filter(  updateoperation.project_name == project, 
-                                              updateoperation.operation.in_ ([ 'serviceUpdate','serviceFallback']), 
+                                              updateoperation.operation.in_ ([ 'serviceUpdate','serviceFallback','serviceFastback']), 
                                               updateoperation.loginfo == 'ok' 
                                            ).order_by(updateoperation.taskid.desc()).limit(2)
         rl = [ones[0].tag]

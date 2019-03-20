@@ -141,6 +141,7 @@ class Deploy:
         self.makeFun      = {   "serviceStop":         self.notexec,
                                 "serviceUpdate":       self.makeUpdate,
                                 "serviceFallback":     self.makeFallback,
+                                "serviceFastback":     self.makeFallback,
                                 "serviceExpansion":    self.makeExpansion,
                                 "serviceRestart":      self.notexec
                             }
@@ -149,6 +150,7 @@ class Deploy:
         self.remoteFun    = {   "serviceStop":         self.serviceStop,
                                 "serviceUpdate":       self.serviceUpdate,
                                 "serviceFallback":     self.serviceUpdate,
+                                "serviceFastback":     self.serviceFastback,
                                 "serviceExpansion":    self.serviceUpdate,
                                 "serviceRestart":      self.serviceRestart
                             }
@@ -224,6 +226,15 @@ class Deploy:
     def serviceUpdate(self):
         self.rsyncCode[self.Type]()
         self.serviceRestart()
+
+    def serviceFastback(self):
+        self.rsyncCode[self.Type]()
+        if self.Type in self.manyPort:
+            portlist = self.getport()
+        else:
+            portlist = [self.port]
+        for port in portlist:
+            self.restart[self.Type](port)
 
 
     def currenthost(self, host):

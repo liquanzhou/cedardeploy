@@ -491,29 +491,62 @@ $("body").on('click', '#deploy_config', function(){
 });
 
 
-
 $("#back_submit").on('click', function(){
     var  p = $('#ipt_project').val()
-    if (p != undefined){
-        var param = {
-            project: p,
-            operation: 'serviceFallback',
-            tag: $('#select_tag').val(),
-        };
-        $.getJSON('/lock_check', param, function(data){
-            if(data['status'] == "ok"){
-                if (confirm('请确认回滚'+ p +'？')) {
-                    updateonline(param)
-                };
-            }else{
-                alert(data['user'] + '正在操作，请勿重复执行！')
-            }
-        });
-    }
-    else{
+    if (p == undefined){
         alert('project_name null');
+        return false;
+    }
+    var fastback = $('#fastback').val()
+    if (fastback == 'yes'){
+        if (confirm('快速回滚: '+ p +'？ 仅限在有故障时紧急操作,不是平滑操作,服务接口会有大量报错,也不做任何检查.')) {
+            var operation = 'serviceFastback'
+        }else{
+            return false;
+        };
+    }else{
+        var operation = 'serviceFallback'
+    }
+
+    var param = {
+        project: p,
+        operation: operation,
+        tag: $('#select_tag').val(),
     };
+
+    $.getJSON('/lock_check', param, function(data){
+        if(data['status'] == "ok"){
+            if (confirm('请确认回滚'+ p +'？')) {
+                updateonline(param)
+            };
+        }else{
+            alert(data['user'] + '正在操作，请勿重复执行！')
+        }
+    });
 });
+
+//$("#back_submit").on('click', function(){
+//    var  p = $('#ipt_project').val()
+//    if (p != undefined){
+//        var param = {
+//            project: p,
+//            operation: 'serviceFallback',
+//            tag: $('#select_tag').val(),
+//        };
+//        $.getJSON('/lock_check', param, function(data){
+//            if(data['status'] == "ok"){
+//                if (confirm('请确认回滚'+ p +'？')) {
+//                    updateonline(param)
+//                };
+//            }else{
+//                alert(data['user'] + '正在操作，请勿重复执行！')
+//            }
+//        });
+//    }
+//    else{
+//        alert('project_name null');
+//    };
+//});
 
 
 
@@ -1463,6 +1496,23 @@ $("#rmlock").on('click', function(){
         $.getJSON('/rmpkl', param, function(data){
             alert(p + ' lock clear done!');
         });
+    }
+    else{
+        alert('project_name null');
+    };
+});
+
+$("#killtask").on('click', function(){
+    var  p = $('#ipt_project').val();
+    if (p != undefined){
+        var param = {
+            project: p
+        };
+        if (confirm('警告:请确认终止当前任务 '+ p +'?')) {
+            $.getJSON('/killtask', param, function(data){
+                alert('kill task ' + p + ' ' + data.status + ':' + data.log);
+            });
+        };
     }
     else{
         alert('project_name null');

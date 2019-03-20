@@ -42,9 +42,24 @@
     </div>
     <br>
     <div class="hostList" style="height:auto;border:1px solid #ccc;padding-left:10px;overflow-x:scroll;white-space:nowrap;">
-        <div>主机列表: <a href="javascript:;" onclick='selectAll("onlinehost");'>全选</a>
-            <div style="float:right" id="add_host_div"></div>
+        <div  style="height:50px;">
+            <div style="float:left;width:260px;">
+                <a href="javascript:;" onclick='selectAll("onlinehost");'>全选</a>
+            </div>
+            <div style="float:left;width:80px;">
+                其他操作:
+            </div>
+            <div style="float:left;width:130px;">
+                 <button id="killtask" class="btn btn-danger btn-sm" >终止发布任务</button>
+            </div>
+            <div style="float:left;width:90px;">
+                 <button id="rmlock" class="btn btn-danger btn-sm" >清除锁</button>
+            </div>
+            <div style="float:left;width:90px;">
+                 <button id="restart_submit" class="btn btn-danger btn-sm" >重启</button>
+            </div>
         </div>
+
         <div style="width:auto;height:auto;">
             <div class="hostListTable" id="host"></div>
         </div>
@@ -52,8 +67,8 @@
 
         <div class="div2" style="width:auto;">
             <div id="select_project"></div>
-            <div style="height:40px;">
-                <div style="float:left;width:370px;">
+            <div style="height:50px;">
+                <div style="width:430px;">
                     <div style="float:left;width:75px;">
                         HistoryTag:
                     </div>
@@ -62,17 +77,12 @@
                           <option value="online1">tag</option>
                         </select>
                     </div>
-                    <div style="float:left;width:60px;">
+                    <div style="float:left;width:130px;">
+                        快速:<select id="fastback"><option value="no" selected="selected">no</option><option value="yes">yes</option></select>
                         <button id="back_submit" class="btn btn-danger btn-sm" >回滚</button>
                     </div>
                 </div>
 
-                <div style="float:left;width:60px;">
-                     <button id="rmlock" class="btn btn-danger btn-sm" >清除锁</button>
-                </div>
-                <div style="float:left;width:60px;">
-                     <button id="restart_submit" class="btn btn-danger btn-sm" >重启</button>
-                </div>
                 <div style="float:right;width:360px;">
                     <div style="float:left;width:260px;">
                         <div style="float:left;width:80px;">
