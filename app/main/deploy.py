@@ -94,7 +94,7 @@ class Deploy:
         self.branch =  pinfo[3]
         self.Type = pinfo[4]
         self.git = pinfo[5]
-        self.port = pinfo[6]
+        self.port = int(pinfo[6])
         self.make = pinfo[7]
         self.istag = pinfo[8]
         self.isnginx = pinfo[9]
@@ -614,7 +614,7 @@ class Deploy:
                 s = socket.socket()
                 s.settimeout(1)
                 try:
-                    portstatus = s.connect_ex((self.host, int(port) ))
+                    portstatus = s.connect_ex((self.host, port ))
                     print('portstatus %s: %s' %(i, portstatus))
                     #self.addlog('portstatus %s: %s' %(i, portstatus))
                     if portstatus == 0:
@@ -757,7 +757,7 @@ class Deploy:
             return 'not removeService'
 
         if self.Type == 'golang':
-            consul_port = int(port) - 3000
+            consul_port = port - 3000
             consul_srv_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             consul_srv_sock.settimeout(2)
             try:
