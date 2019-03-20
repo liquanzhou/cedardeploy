@@ -631,10 +631,10 @@ class Deploy:
                 time.sleep(2)
 
             if results == 'ok':
-                self.addlog('INFO: check ip port up: %s:%s' %(self.host, int(port)))
+                self.addlog('INFO: check ip port up: %s:%s' %(self.host, port))
             else:
                 self.status = 'fail'
-                self.addlog('ERROR: check ip port down: %s:%s' %(self.host, int(port)))
+                self.addlog('ERROR: check ip port down: %s:%s' %(self.host, port))
                 self.wlogsql()
                 self.done()
 
