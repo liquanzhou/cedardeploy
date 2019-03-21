@@ -450,7 +450,13 @@ class Deploy:
 
         Result = self.exec_shell(shell_cmd)
         portlist = Result['log'].strip().split('\n')
-        return portlist
+        pl = []
+        for port in portlist:
+            if port == '':
+                return ['']
+            self.addlog('getport port: %s' %(port))
+            pl.append(int(port))
+        return pl
 
 
     def check_code_update(self):
