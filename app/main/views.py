@@ -614,7 +614,7 @@ def add_host():
         project = request.form.get('project', "null").strip()
         hostname = request.form.get('hostname', "null").strip()
         host = request.form.get('host', "null").strip()
-        variable1 = request.form.get('variable1', "null").strip()
+        variable1 = request.form.get('variable1', "1").strip()
         variable2 = request.form.get('variable2', "null").strip()
         variable3 = request.form.get('variable3', "null").strip()
         variable4 = request.form.get('variable4', "null").strip()
@@ -628,6 +628,8 @@ def add_host():
         ones1 = serverinfo.query.filter(serverinfo.project_name == project, serverinfo.ip == host).all()
         if len(ones1) != 0:
             raise Exception('ERROR: host exist.')
+        if variable1 == '':
+            variable1 = '1'
     
         newserver = serverinfo(project, hostname, host, variable1, variable2, variable3, variable4, variable5, variable6, variable7, variable8, variable9)
         db.session.add(newserver)
@@ -1200,7 +1202,7 @@ def expansion():
                 time.sleep(5)
         if status != 'ok':
             raise Exception('ERROR: expansion host %s ssh fail. %s' %(host, expansionInfo))
-        variable1 = ""
+        variable1 = "1"
         variable2 = ""
         variable3 = ""
         variable4 = ""
