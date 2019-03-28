@@ -368,10 +368,7 @@ class Deploy:
         c.execute(sql)
         ones = c.fetchall()
         if not ones:
-            self.status = 'fail',
-            self.addlog('ERROR: getlastoktag. not update ok. ')
-            self.wlogsql()
-            self.done()
+            self.faildone('getlastoktag. not update ok. ')
 
         self.tag = ones[0][0]
 
@@ -391,15 +388,12 @@ class Deploy:
         s = subprocess.Popen( shell_cmd, shell=True, stdin = subprocess.PIPE, stdout = subprocess.PIPE, stderr = subprocess.PIPE  )
         newlog, stderr = s.communicate()
         return_status = s.returncode
-        self.addlog('%s\n%s' % (newlog.strip(), stderr.strip()) )
-
-        print(newlog)
+        logs = '%s\n%s' % (newlog.strip(), stderr.strip())
         if return_status == 0:
+            self.addlog(logs)
             return {'status':'ok', 'log':newlog}
         else:
-            self.status = 'fail'
-            self.wlogsql()
-            self.done()
+            self.faildone(logs)
 
     def done(self):
         self.updateTaskStatus()
@@ -415,6 +409,11 @@ class Deploy:
         else:
             sys.exit(1)
 
+    def faildone(self, log=''):
+        self.addlog('ERROR: %s' %(log))
+        self.status = 'fail'
+        self.wlogsql()
+        self.done()
 
     def notexec(self, port = None):
         pass
@@ -491,11 +490,8 @@ class Deploy:
         self.addlog('remoteCommitId: ')
         Result = self.exec_shell(shell_cmd)
         if not Result['log']:
-            self.status = 'fail'
-            self.addlog('ERROR: check_code_update. %s/%s  remote %s branch not existent. ' 
-                      %(self.project_path, self.project, self.branch) )
-            self.wlogsql()
-            self.done()
+            self.faildone('check_code_update. %s/%s  remote %s branch not existent. ' 
+                        %(self.project_path, self.project, self.branch) )
         remoteCommitId = Result['log'].strip().split()[0]
 
         self.commitid = remoteCommitId
@@ -534,11 +530,8 @@ class Deploy:
 
     def build_file_operation(self):
         if not os.path.isdir('%s/%s-%s/' %(self.project_path, self.project, self.tag)):
-            self.status = 'fail',
-            self.addlog('ERROR: %s/%s-%s/ directory does not exist. build_file_operation' 
+            self.faildone('%s/%s-%s/ directory does not exist. build_file_operation' 
                       %(self.project_path, self.project, self.tag) )
-            self.wlogsql()
-            self.done()
 
         if self.Type == 'golang':
             shell_cmd = '''cd %s/%s-%s && cp -a startdata libs deploy-bin/ ''' %(
@@ -604,11 +597,8 @@ class Deploy:
             self.addlog('INFO: %s/%s-%s directory does exist. check_backup_operation' 
                       %( self.project_path, self.project, self.tag) )
         else:
-            self.status = 'fail',
-            self.addlog('ERROR: %s/%s-%s directory does not exist. check_backup_operation' 
+            self.faildone('%s/%s-%s directory does not exist. check_backup_operation' 
                       %( self.project_path, self.project, self.tag) )
-            self.wlogsql()
-            self.done()
 
     def check_status(self, port = None):
         if port is None:
@@ -639,10 +629,7 @@ class Deploy:
             if results == 'ok':
                 self.addlog('INFO: check ip port up: %s:%s' %(self.host, port))
             else:
-                self.status = 'fail'
-                self.addlog('ERROR: check ip port down: %s:%s' %(self.host, port))
-                self.wlogsql()
-                self.done()
+                self.faildone('check ip port down: %s:%s' %(self.host, port))
 
     def http_check(self, port = None):
         if port is None:
@@ -674,11 +661,8 @@ class Deploy:
                 self.addlog('INFO: http check %s ok. http status code: %s \n%s\n' %(
                              url, httpstatus, httpcontent))
             else:
-                self.status = 'fail'
-                self.addlog('ERROR: http check %s fail. http status code: %s \n%s\n' %(
-                             url, httpstatus, httpcontent))
-                self.wlogsql()
-                self.done()
+                self.faildone('http check %s fail. http status code: %s \n%s\n' %(
+                               url, httpstatus, httpcontent))
 
 
     def stopSupervisor(self, port = None):
@@ -716,10 +700,7 @@ class Deploy:
         print(shell_cmd)
         self.exec_shell(shell_cmd)
         if 'Address already in use' in self.loginfo:
-            self.status = 'fail'
-            self.addlog('ERROR: Address already in use')
-            self.wlogsql()
-            self.done()
+            self.faildone('Address already in use')
 
 
 
@@ -808,13 +789,10 @@ class Deploy:
                     self.addlog('INFO: auto test OK\n')
                     return 'ok'
                 else:
-                    self.addlog('ERROR: auto test Fail.\nError details: %s' %(r['url_list']) )
+                    self.faildone('auto test Fail.\nError details: %s' %(r['url_list']) )
             except Exception as err:
-                self.addlog('ERROR: auto test Fail. QA api Fail \n%s' % str(err))
+                self.faildone('auto test Fail. QA api Fail \n%s' % str(err))
 
-            self.status = 'fail'
-            self.wlogsql()
-            self.done()
 
 
 
