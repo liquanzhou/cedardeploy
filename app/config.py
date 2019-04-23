@@ -21,13 +21,7 @@ LDAP_BASE = "ou=People,dc=xc,dc=cn"
 
 
 # 远程发布目录
-host_path = '/app/web/'
-go_host_path = '/app/golang/'
-jobs_host_path = '/app/jobs/'
-
-
-# 多端口项目 项目类型 
-manyPort = ['python', 'nodejs']
+remote_host_path = '/app/project/'
 
 # 使用supervisord管理的进程 项目类型
 supervisord_list = ['sh', 'go', 'golang', 'python', 'nodejs', 'java-jar']
@@ -36,7 +30,7 @@ supervisord_list = ['sh', 'go', 'golang', 'python', 'nodejs', 'java-jar']
 # files = supervisor_conf_dir/*.conf
 supervisor_conf_dir = '/app/supervisor/conf/conf.d/'
 # 远程主机supervisor存放日志目录, 没有服务无法启动
-supervisor_log_path = '/data/log/supervisor/'
+supervisor_log_path = '/data/logs/supervisor/'
 
 
 # 管理员菜单列表

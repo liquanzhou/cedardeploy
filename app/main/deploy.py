@@ -47,12 +47,14 @@ def config_info(project):
 
 def gethostname(project):
     print(project)
-    sql = "SELECT `ip`,`hostname` FROM `serverinfo` WHERE project_name = '%s';" % (project)
+    sql = "SELECT `ip`,`hostname`,`pnum` FROM `serverinfo` WHERE project_name = '%s';" % (project)
     c.execute(sql)
     ones = c.fetchall()
     hostnameinfo = {}
     for i in ones:
-        hostnameinfo[i[0]] = i[1]
+        print(i)
+        hostnameinfo[i[0]] = [i[1], int(i[2])]
+    print(hostnameinfo)
     return hostnameinfo
 
 def getworkorder(project):
@@ -71,17 +73,17 @@ def getworkorder(project):
 class Deploy:
     def __init__(self, project, tag, taskid, hostlist, operation, currentuser, reason):
 
-        self.project = project
-        self.tag = tag
-        self.taskid = taskid
-        self.hostlist = hostlist
-        self.operation = operation
+        self.project     = project
+        self.tag         = tag
+        self.taskid      = taskid
+        self.hostlist    = hostlist
+        self.operation   = operation
         self.currentuser = currentuser
-        self.reason = reason
+        self.reason      = reason
 
-        pinfo = project_info(project)
-        cinfo = config_info(project)
-        self.hostnameinfo = gethostname(project)
+        pinfo  = project_info(project)
+        cinfo  = config_info(project)
+        self.hostnameinfo  = gethostname(project)
         self.workorderinfo = getworkorder(project)
 
         print(pinfo)
@@ -89,49 +91,43 @@ class Deploy:
         print(self.hostnameinfo)
         print(self.workorderinfo)
 
-        self.p = pinfo[1]
+        self.business    = pinfo[1]
         self.environment = pinfo[2]
-        self.branch =  pinfo[3]
-        self.Type = pinfo[4]
-        self.git = pinfo[5]
-        self.port = int(pinfo[6])
-        self.make = pinfo[7]
-        self.istag = pinfo[8]
-        self.isnginx = pinfo[9]
-        self.business = pinfo[10]
-        self.ischeck = pinfo[11]
-        self.checkurl = pinfo[12]
-        self.statuscode = pinfo[13]
+        self.p           = pinfo[3]
+        self.Type        = pinfo[4]
+        self.port        = int(pinfo[5])
+        self.git         = pinfo[6]
+        self.branch      = pinfo[7]
 
 
-        self.config1 = cinfo[1]
-        self.config2 = cinfo[2]
-        self.config3 = cinfo[3]
-        self.config4 = cinfo[4]
-        self.config5 = cinfo[5]
+        self.make        = cinfo[1]
+        self.supervisor  = cinfo[2]
+        self.config      = cinfo[3]
+        self.remarks     = cinfo[4]
+        self.startcmd    = cinfo[5]
+        self.packfile    = cinfo[6]
+        self.istag       = cinfo[7]
+        self.checkport   = cinfo[8]
+        self.checkhttp   = cinfo[9]
+        self.httpurl     = cinfo[10]
+        self.httpcode    = cinfo[11]
 
 
-        self.host = 'Deploy'
-        self.status = 'ok'
+        self.host     = 'Deploy'
+        self.status   = 'ok'
         self.commitid = ''
 
-        self.exec_user = exec_user
-        self.project_path = project_path
-        self.basicGlist = basicGlist
-        self.manyPort = manyPort
-        self.businessRobot = businessRobot
-        self.sreRobot = sreRobot
-        self.autotestURL = autotestURL
-        self.autolist = autolist
+        self.exec_user      = exec_user
+        self.project_path   = project_path
+        self.basicGlist     = basicGlist
+        self.businessRobot  = businessRobot
+        self.sreRobot       = sreRobot
+        self.autotestURL    = autotestURL
+        self.autolist       = autolist
+        self.host_path      = remote_host_path
 
         print(self.autolist)
 
-        if self.Type == 'go' or self.Type == 'golang':
-            self.host_path = go_host_path
-        elif self.Type == 'jobs':
-            self.host_path = jobs_host_path
-        else:
-            self.host_path = host_path
 
         self.pkl_file = '%s/deploy.%s.lock' %(lock_path, project)
         self.loginfo = 'user: %s\nhostlist: %s\noperation: %s\nproject: %s\ntag: %s\ntaskid: %s\n' %(
@@ -199,22 +195,20 @@ class Deploy:
         self.wlogsql()
 
     def serviceStop(self):
-        if self.Type in self.manyPort:
-            portlist = self.getport()
-        else:
-            portlist = [self.port]
-
-        for port in portlist:
+        print(self.hostnameinfo)
+        pnum = self.hostnameinfo[self.host][1]
+        for port in range(self.port, self.port + pnum):
             self.removeService(port)
             self.stop[self.Type](port)
 
     def serviceRestart(self):
-        if self.Type in self.manyPort:
-            portlist = self.getport()
-        else:
-            portlist = [self.port]
+        pnum = self.hostnameinfo[self.host][1]
+        print(pnum)
+        print(type(pnum))
+        print(type(self.port))
+        print(self.port + pnum)
 
-        for port in portlist:
+        for port in range(self.port, self.port + pnum):
             self.removeService(port)
             self.restart[self.Type](port)
             self.check_status(port)
@@ -229,11 +223,8 @@ class Deploy:
 
     def serviceFastback(self):
         self.rsyncCode[self.Type]()
-        if self.Type in self.manyPort:
-            portlist = self.getport()
-        else:
-            portlist = [self.port]
-        for port in portlist:
+        pnum = self.hostnameinfo[self.host][1]
+        for port in range(self.port, self.port + pnum):
             self.restart[self.Type](port)
 
 
@@ -245,7 +236,7 @@ class Deploy:
 
     def wlogsql(self):
         try:
-            host_name = self.hostnameinfo[self.host]
+            host_name = self.hostnameinfo[self.host][0]
         except:
             host_name = self.host
 
@@ -265,7 +256,7 @@ class Deploy:
 
     def updateHostCommit(self):
         if self.commitid:
-            sql = "update `serverinfo` set `variable3`='%s',`variable4`='%s' \
+            sql = "update `serverinfo` set `commitid`='%s',`updatetime`='%s' \
                            where project_name='%s' and ip='%s';   " % (
                            self.commitid, self.tag, self.project, self.host)
             print(sql)
@@ -276,9 +267,9 @@ class Deploy:
                 self.done()
 
     def updateTaskStatus(self):
-        sql = "update `updateoperation` set `loginfo`='%s',`tag`='%s' \
+        sql = "update `updateoperation` set `status`='%s',`tag`='%s',`commitid`='%s' \
                        where project_name='%s' and taskid='%s';  " % (
-                       self.status, self.tag, self.project, self.taskid)
+                       self.status, self.tag, self.commitid, self.project, self.taskid)
         print(sql)
         try:
             c.execute(sql)
@@ -293,7 +284,7 @@ class Deploy:
         HL = 'hostlist:'
         for HOST in self.hostlist.split(','):
             try:
-                host_name = self.hostnameinfo[HOST]
+                host_name = self.hostnameinfo[HOST][0]
             except:
                 host_name = HOST
             HL = HL + '  ' + host_name
@@ -348,29 +339,19 @@ class Deploy:
             self.addlog(str(err))
 
 
-    def getlasttag(self):
-        sql = "SELECT `tag`,`loginfo` FROM `updateoperation`   \
-                      WHERE project_name = '%s' and operation = 'serviceUpdate' and tag != '%s' \
-                      order by taskid desc limit 1;" % (self.project, self.tag)
-        c.execute(sql)
-        ones = c.fetchall()
-        if ones:
-            if ones[0][1] == 'ok':
-                self.tag = ones[0][0]
-                return True
-        return False
-
-
-    def getlastoktag(self):
-        sql = "SELECT `tag` FROM `updateoperation`  \
-                      WHERE project_name = '%s' and operation = 'serviceUpdate' and loginfo = 'ok' \
+    def getlastokstatus(self):
+        sql = "SELECT `tag`,`commitid` FROM `updateoperation`  \
+                      WHERE project_name = '%s' and operation = 'serviceUpdate' and status = 'ok' \
                       order by taskid desc limit 1;" % (self.project)
         c.execute(sql)
         ones = c.fetchall()
-        if not ones:
-            self.faildone('getlastoktag. not update ok. ')
-
-        self.tag = ones[0][0]
+        if ones:
+            tag      = ones[0][0]
+            commitid = ones[0][1]
+        else:
+            tag = ''
+            commitid = ''
+        return {'tag': tag, 'commitid': commitid}
 
 
     def getloginfo(self, port = None):
@@ -394,6 +375,18 @@ class Deploy:
             return {'status':'ok', 'log':newlog}
         else:
             self.faildone(logs)
+
+    def dingding(self, Robot, content):
+        data = {
+                "msgtype": "text",
+                "text": {
+                    "content": content
+                }
+            }
+        try:
+            r = requests.post(url=Robot, data=json.dumps(data), headers=headers, timeout=2).json()
+        except Exception as err:
+            print('ERROR: notice dingding api error. %s' %(str(err)))
 
     def done(self):
         self.updateTaskStatus()
@@ -419,17 +412,14 @@ class Deploy:
         pass
 
     def makeUpdate(self):
-        code = self.check_code_update()
-
-        if code:
-            self.addlog('INFO: check_code_update true')
-            self.code_update()
+        self.code_update()
+        if self.checkcommitid():
             self.make_operation()
             self.tag_operation()
             self.backup_operation()
             self.write_commitid()
         else:
-            self.addlog('INFO: not update git code')
+            self.addlog('INFO: not make code')
         self.build_file_operation()
         self.addlog('INFO:  tag: %s' %(self.tag))
 
@@ -438,88 +428,59 @@ class Deploy:
         self.local_commitid()
 
     def makeExpansion(self):
-        self.getlastoktag()
+        self.tag = self.getlastokstatus()['tag']
+        if self.tag == '':
+            self.faildone('getlastokstatus. not update ok. ')
         self.check_backup_operation()
         self.local_commitid()
-
-
-    def getport(self):
-        shell_cmd = '''ssh -o StrictHostKeyChecking=no -o ConnectTimeout=2 %s@%s "supervisorctl status" |grep ^%s: |awk '{print $1}' |awk -F ':' '{print $2}'  ''' %(
-                       self.exec_user, self.host, self.project)
-
-        Result = self.exec_shell(shell_cmd)
-        portlist = Result['log'].strip().split('\n')
-        pl = []
-        for port in portlist:
-            if port == '':
-                return ['']
-            self.addlog('getport port: %s' %(port))
-            pl.append(int(port))
-        return pl
-
-
-    def check_code_update(self):
-        if not os.path.isdir('%s/%s' %(self.project_path, self.project) ):
-            if self.Type != 'go':
-                self.addlog('WARN: check_code_update. %s/%s directory does not exist. ' 
-                          %(self.project_path, self.project) )
-                shell_cmd = 'git clone  %s %s/%s' %(self.git, self.project_path, self.project)
-                Result = self.exec_shell(shell_cmd)
-            localCommitId = 'INFO: Not Commit Id'
-        else:
-            shell_cmd = "cd %s/%s && git remote -v |grep fetch |awk '{print $2}'" %(self.project_path, self.project)
-            Result = self.exec_shell(shell_cmd)
-            localGit = Result['log'].strip()
-            if localGit == self.git:
-                shell_cmd = "cd %s/%s && git rev-parse HEAD" %(self.project_path, self.project)
-                self.addlog('localCommitId: ')
-                Result = self.exec_shell(shell_cmd)
-                localCommitId = Result['log'].strip()
-            else:
-                shell_cmd = 'rm -rf %s/%s' %(self.project_path, self.project)
-                self.addlog(shell_cmd)
-                Result = self.exec_shell(shell_cmd)
-                shell_cmd = 'git clone  %s %s/%s' %(self.git, self.project_path, self.project)
-                self.addlog(shell_cmd)
-                Result = self.exec_shell(shell_cmd)
-                localCommitId = 'localCommitId: new git'
-
-
-        shell_cmd = '''cd %s/%s && git ls-remote --heads origin refs/heads/%s''' %(
-                       self.project_path, self.project, self.branch)
-        self.addlog('remoteCommitId: ')
-        Result = self.exec_shell(shell_cmd)
-        if not Result['log']:
-            self.faildone('check_code_update. %s/%s  remote %s branch not existent. ' 
-                        %(self.project_path, self.project, self.branch) )
-        remoteCommitId = Result['log'].strip().split()[0]
-
-        self.commitid = remoteCommitId
-
-        if localCommitId == remoteCommitId:
-            self.addlog('INFO: localCommitId = remoteCommitId\n' )
-            if self.getlasttag():
-                return False
-            self.addlog('INFO: getlastta False')
-            return True
-        else:
-            self.addlog('INFO: localCommitId != remoteCommitId\n' )
-            return True
-
-
 
     def code_update(self):
         if self.Type == 'go':
             shell_cmd = ''' rm -rf %s/%s ; git  clone  --depth=1 -b %s %s %s/%s && cd %s/%s && git log -n 1 --stat
                         ''' %(self.project_path, self.project, self.branch, self.git, self.project_path, self.project, self.project_path, self.project )
+            self.exec_shell(shell_cmd)
+        elif os.path.isdir('%s/%s' %(self.project_path, self.project) ):
+            shell_cmd = "cd %s/%s && git remote -v |grep fetch |awk '{print $2}'" %(self.project_path, self.project)
+            Result = self.exec_shell(shell_cmd)
+            localGit = Result['log'].strip()
+            if localGit == self.git:
+                shell_cmd = ''' cd %s/%s && git reset --hard && git gc && git remote prune origin \
+                                      && git fetch && git checkout %s && git reset --hard origin/%s \
+                                      && git submodule init && git submodule update \
+                                      && git log -n 1 --stat
+                            '''  %(self.project_path, self.project, self.branch, self.branch)
+                self.exec_shell(shell_cmd)
+            else:
+                shell_cmd = 'rm -rf %s/%s' %(self.project_path, self.project)
+                self.addlog(shell_cmd)
+                self.exec_shell(shell_cmd)
+                shell_cmd = 'git clone  %s %s/%s' %(self.git, self.project_path, self.project)
+                self.addlog(shell_cmd)
+                self.exec_shell(shell_cmd)
         else:
-            shell_cmd = ''' cd %s/%s && git reset --hard && git gc && git remote prune origin \
-                                  && git fetch && git checkout %s && git reset --hard origin/%s \
-                                  && git submodule init && git submodule update \
-                                  && git log -n 1 --stat
-                        '''  %(self.project_path, self.project, self.branch, self.branch)
-        self.exec_shell(shell_cmd)
-        return True
+            shell_cmd = 'git clone  %s %s/%s' %(self.git, self.project_path, self.project)
+            self.addlog(shell_cmd)
+            self.exec_shell(shell_cmd)
+
+
+    def checkcommitid(self):
+
+        shell_cmd = "cd %s/%s && git rev-parse HEAD" %(self.project_path, self.project)
+        Result = self.exec_shell(shell_cmd)
+        self.commitid = Result['log'].strip()[0:8]
+
+        laststatus   = self.getlastokstatus()
+        lastcommitid = laststatus['commitid']
+        lasttag      = laststatus['tag']
+
+        if self.commitid == lastcommitid:
+            self.tag = lasttag
+            self.addlog('lastCommitId: %s' %(self.commitid) )
+            self.addlog('lasttag: %s' %(self.tag) )
+            return False
+        else:
+            self.addlog('newCommitId: %s' %(self.commitid) )
+            return True
 
 
     def local_commitid(self):
@@ -534,6 +495,8 @@ class Deploy:
                       %(self.project_path, self.project, self.tag) )
 
         if self.Type == 'golang':
+            shell_cmd = "cd %s/%s-%s && rm -rf  deploy-etc/ deploy-bin/etc && mkdir -p deploy-bin && git clone --depth=1 %s deploy-etc  && cp -a deploy-etc/etc  deploy-bin/etc " %(self.project_path, self.project, self.tag, self.supervisor.strip() )
+            self.exec_shell(shell_cmd)
             shell_cmd = '''cd %s/%s-%s && cp -a startdata libs deploy-bin/ ''' %(
                                   self.project_path, self.project, self.tag)
             print(os.popen(shell_cmd).read())
@@ -541,7 +504,7 @@ class Deploy:
                         ''' %(self.project_path, self.project, self.tag)
             print(os.popen(shell_cmd).read())
 
-            self.addlog('---------------------------\n%s\n---------------------------' %self.config1)
+            self.addlog('---------------------------\n%s\n---------------------------' %self.supervisor)
         else:
             pass
 
@@ -575,9 +538,6 @@ class Deploy:
         self.exec_shell(shell_cmd)
 
     def backup_operation(self):
-
-        #self.addlog('ls -dr %s/%s-%s-20* |awk "NR>8{print $1}" |xargs -i rm -rf {} ' %(self.project_path, self.project, self.project.split('_')[0]) )
-
         bak_delete_start_time = time.strftime('%Y-%m-%d %H:%M:%S')
         shell_cmd = '''ls -dr %s/%s-%s-20* 2>/dev/null |awk "NR>9{print $1}" |xargs -i rm -rf {} 
                     ''' %(self.project_path, self.project, self.project.split('_')[0])
@@ -603,7 +563,7 @@ class Deploy:
     def check_status(self, port = None):
         if port is None:
             port = self.port
-        if self.isnginx == 'yes':
+        if self.checkport == 'yes':
             i = 0
             results = ''
             while i < 60:
@@ -634,18 +594,18 @@ class Deploy:
     def http_check(self, port = None):
         if port is None:
             port = self.port
-        if self.ischeck == 'yes':
+        if self.checkhttp == 'get':
             i = 0
             results = ''
             httpcontent = ''
-            url = 'http://%s:%s%s' %(self.host, port, self.checkurl)
+            url = 'http://%s:%s%s' %(self.host, port, self.httpurl)
             while i < 30:
                 try:
                     r = requests.get(url,timeout=2)
                     httpstatus = r.status_code
                     httpcontent = r.content
 
-                    if httpstatus == int(self.statuscode):
+                    if httpstatus == int(self.httpcode):
                         results = 'ok'
                         time.sleep(1)
                         break
@@ -768,7 +728,7 @@ class Deploy:
     def increaseService(self, port = None):
         if port is None:
             port = self.port
-        if self.isnginx == 'yes':
+        if self.checkport == 'yes':
             pass
 
     def autotest(self, port = None):

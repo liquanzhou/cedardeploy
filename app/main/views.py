@@ -371,8 +371,7 @@ def hostlist():
         return json.dumps([['sql','error','null','null']])
     rl = []
     for i in ones1:
-        rl.append([i.ip, i.hostname, i.project_name, Type, i.variable1, i.variable2, i.variable3, 
-                   i.variable4, i.variable5, i.variable6, i.variable7, i.variable8, i.variable9])
+        rl.append([i.ip, i.hostname, i.project_name, Type, i.pnum, i.env, i.checkstatus, i.checktime, i.commitid, i.updatestatus, i.updatetime ]) 
     return json.dumps(rl)
 
 
@@ -403,9 +402,9 @@ def iplistall():
 @main.route("/hostlisterr", methods=["GET", "POST"])
 def hostlisterr():
     try:
-        ones = serverinfo.query.filter(  serverinfo.variable2 != 'RUNNING', 
-                                         serverinfo.variable2 != 'SSHOK',
-                                         serverinfo.variable2 != 'null'
+        ones = serverinfo.query.filter(  serverinfo.checkstatus != 'RUNNING', 
+                                         serverinfo.checkstatus != 'SSHOK',
+                                         serverinfo.checkstatus != 'null'
                                       ).order_by(serverinfo.project_name).all()
     except:
         return json.dumps([['sql','error','null','null']])
@@ -413,8 +412,8 @@ def hostlisterr():
     Type = 'null'
 
     for i in ones:
-        rl.append([i.ip, i.hostname, i.project_name, Type, i.variable1, i.variable2, i.variable3, 
-                   i.variable4, i.variable5, i.variable6, i.variable7, i.variable8, i.variable9])
+        rl.append([i.ip, i.hostname, i.project_name, Type, i.pnum, i.checkstatus, i.checktime, 
+                   i.commitid, i.updatestatus, i.updatetime])
     return json.dumps(rl)
 
 @main.route("/port_list", methods=["GET", "POST"])
@@ -446,14 +445,12 @@ def project_list():
 def project_info():
     project = request.args.get("project", "null")
     if project == "null":
-        return json.dumps(['project null', 'environment', 'git', 'branch', 'type', 'port', 'istag', 'isnginx', 'business', 'ischeck', 'checkurl', 'statuscode'])
+        return json.dumps(['business', 'environment', 'project null', 'type', 'port', 'git', 'branch'])
     try:
         ones = projectinfo.query.filter(projectinfo.project_name == project).first()
     except:
-        return json.dumps(['sql error', 'environment', 'git', 'branch', 'type', 'port', 'istag', 'isnginx', 'business', 'ischeck', 'checkurl', 'statuscode'])
-    rl = [ones.project, ones.environment, ones.git, ones.branch, ones.type, ones.port, 
-          ones.make.replace('"','&quot;').replace("'",'&#39;'), ones.istag, ones.isnginx, 
-          ones.business, ones.ischeck, ones.checkurl, ones.statuscode]
+        return json.dumps(['business', 'environment', 'sql error', 'type', 'port', 'git', 'branch'])
+    rl = [ ones.business, ones.environment,  ones.project, ones.type, ones.port, ones.git, ones.branch]
     return json.dumps(rl)
         
 
@@ -463,11 +460,10 @@ def projectinfoall():
     try:
         ones = projectinfo.query.all()
     except:
-        return json.dumps( {'environment_project null':['git', 'branch', 'type', 'port', 'make', 'istag', 'isnginx', 'business', 'ischeck', 'checkurl', 'statuscode']})
+        return json.dumps( {'environment_project null':['git', 'branch', 'type', 'port', 'business']})
     rl = {}
     for i in ones:
-        rl['%s_%s' %(i.environment, i.project)] = [i.git, i.branch, i.type, i.port, i.make.replace('"','&quot;').replace("'",'&#39;'), 
-                                                   i.istag, i.isnginx, i.business, i.ischeck, i.checkurl, i.statuscode]
+        rl['%s_%s' %(i.environment, i.project)] = [i.git, i.branch, i.type, i.port, i.business]
     return json.dumps(rl)
 
 
@@ -483,15 +479,17 @@ def config_info():
     except:
         return json.dumps({'sql error':'config'})
 
-    rl = [  ['config1',             ones.config1],
-            ['config2',             ones.config2],
-            ['config3',             ones.config3],
-            ['config4',             ones.config4],
-            ['config5',             ones.config5],
-            ['服务主要功能',        ones.config6], 
-            ['主要使用的后端服务',  ones.config7],
-            ['出问题后影响',        ones.config8],
-            ['其他',                ones.config9]
+    rl = [  ['make',         ones.make],
+            ['supervisor',   ones.supervisor],
+            ['config',       ones.config],
+            ['remarks',      ones.remarks],
+            ['startcmd',     ones.startcmd],
+            ['packfile',     ones.packfile], 
+            ['istag',        ones.istag],
+            ['checkport',    ones.checkport],
+            ['checkhttp',    ones.checkhttp],
+            ['httpurl',      ones.httpurl],
+            ['httpcode',     ones.httpcode]
          ]
     return json.dumps(rl)
 
@@ -502,23 +500,17 @@ def add_project():
     R = {'status':'ok', 'log':'', 'data':''}
 
     try:
-        project = request.form.get('project', "null").strip()
+        business = request.form.get('business', "null").strip()
         environment = request.form.get('environment', "null").strip()
-        git = request.form.get('git', "null").strip()
-        branch = request.form.get('branch', "null").strip()
+        project = request.form.get('project', "null").strip()
         program_type = request.form.get('type', "null").strip()
         port = str(request.form.get('port', "0")).strip()
-        make = str(request.form.get('make', "null")).strip()
-        istag = request.form.get('istag', "null").strip()
-        isnginx = request.form.get('isnginx', "null").strip()
-        business = request.form.get('business', "null").strip()
-        ischeck = request.form.get('check', "null").strip()
-        checkurl = request.form.get('checkurl', "null").strip()
-        statuscode = request.form.get('statuscode', "null").strip()
+        git = request.form.get('git', "null").strip()
+        branch = request.form.get('branch', "null").strip()
         if not port:
             port = '0'
     
-        if project == "null" or environment == "null" or branch == "null" or program_type == "null" or git == "null" or istag == "null":
+        if project == "null" or environment == "null" or branch == "null" or program_type == "null" or git == "null":
             raise Exception('ERROR: parameter error')
     
         project_name = environment + '_' + project
@@ -527,76 +519,50 @@ def add_project():
         if ones != None:
             raise Exception('ERROR: project already exists')
         newproject = projectinfo(  project_name = project_name, 
-                                   project = project, 
-                                   environment = environment, 
-                                   branch = branch, 
-                                   type = program_type, 
-                                   git = git, 
-                                   port = port, 
-                                   make = make, 
-                                   istag=istag, 
-                                   isnginx=isnginx, 
-                                   business=business, 
-                                   ischeck=ischeck, 
-                                   checkurl=checkurl, 
-                                   statuscode=statuscode
+                                   business     = business, 
+                                   environment  = environment, 
+                                   project      = project, 
+                                   type         = program_type, 
+                                   port         = port, 
+                                   git          = git, 
+                                   branch       = branch
                                 )
         db.session.add(newproject)
         db.session.commit()
     
-    
-        config1  = ''
-        config2  = ''
-        config3  = ''
-        config4  = ''
-        config5  = ''
-        config6  = ''
-        config7  = ''
-        config8  = ''
-        config9  = ''
-        config10 = ''
-    
-        if environment == 'online':
-            ZUIYOU_ENV = 'production'
-            projectenv = project
-        else:
-            ZUIYOU_ENV = environment
-            projectenv = '%s-%s' %(project, environment)
-    
         if program_type == 'python':
-            config3 = supervisor_python_conf
+            supervisor = supervisor_python_conf
         if program_type == 'nodejs':
-            config3 = supervisor_nodejs_conf
+            supervisor = supervisor_nodejs_conf
         elif program_type == 'go' or program_type == 'golang':
-            config3 = supervisor_go_conf
+            supervisor = supervisor_go_conf
         elif program_type == 'sh':
-            config3 = supervisor_sh_conf
+            supervisor = supervisor_sh_conf
         elif program_type == 'java':
-            config2 = catalina_sh
-            config3 = server_xml
+            supervisor = catalina_sh
+            config = server_xml
     
-        config3 = config3.replace('$USER$', exec_user
-                        ).replace('$HOST_PATH$', host_path
-                        ).replace('$port$', port
-                        ).replace('$project$', project
-                        ).replace('$environment$',environment
-                        ).replace('$supervisor_log_path$', supervisor_log_path
-                        ).replace('$ZUIYOU_ENV$', ZUIYOU_ENV
-                        ).replace('$project-env$', projectenv
-                        ).replace('$ajpport$', str(int(port)-105)
-                        ).replace('$shutdownport$', str(int(port)-75)  )
+        supervisor = supervisor.replace('$USER$',                exec_user
+                              ).replace('$HOST_PATH$',           remote_host_path
+                              ).replace('$port$',                port
+                              ).replace('$project$',             project
+                              ).replace('$environment$',         environment
+                              ).replace('$supervisor_log_path$', supervisor_log_path
+                              ).replace('$ajpport$',             str(int(port)-105)
+                              ).replace('$shutdownport$',        str(int(port)-75)  )
     
         configadd = project_config(  project_name = project_name, 
-                                     config1 = config1, 
-                                     config2 = config2, 
-                                     config3 = config3, 
-                                     config4 = config4, 
-                                     config5 = config5, 
-                                     config6 = config6, 
-                                     config7 = config7, 
-                                     config8 = config8, 
-                                     config9 = config9, 
-                                     config10 = config10 )
+                                     make         = 'sh deploy_make.sh',
+                                     supervisor   = supervisor,
+                                     config       = '',
+                                     remarks      = 'remarks',
+                                     startcmd     = '',
+                                     packfile     = '',
+                                     istag        = 'no',
+                                     checkport    = 'no',
+                                     checkhttp    = 'no',
+                                     httpurl      = '/',
+                                     httpcode     = '200')
         db.session.add(configadd)
         db.session.commit()
 
@@ -611,27 +577,20 @@ def add_project():
 def add_host():
     R = {'status':'ok', 'log':'', 'data':''}
     try:
-        project = request.form.get('project', "null").strip()
-        hostname = request.form.get('hostname', "null").strip()
-        host = request.form.get('host', "null").strip()
-        variable1 = request.form.get('variable1', "1").strip()
-        variable2 = request.form.get('variable2', "null").strip()
-        variable3 = request.form.get('variable3', "null").strip()
-        variable4 = request.form.get('variable4', "null").strip()
-        variable5 = request.form.get('variable5', "null").strip()
-        variable6 = request.form.get('variable6', "").strip()
-        variable7 = request.form.get('variable7', "null").strip()
-        variable8 = request.form.get('variable8', "null").strip()
-        variable9 = request.form.get('variable9', "null").strip()
+        project      = request.form.get('project',      "null").strip()
+        hostname     = request.form.get('hostname',     "null").strip()
+        host         = request.form.get('host',         "null").strip()
+        pnum         = request.form.get('pnum',         "1"   ).strip()
+        env          = request.form.get('env',          ""    ).strip()
         if project == "null" or hostname == "null" or host == "null" or project == "" or hostname == "" or host == "":
             raise Exception('ERROR: parameter error')
         ones1 = serverinfo.query.filter(serverinfo.project_name == project, serverinfo.ip == host).all()
         if len(ones1) != 0:
             raise Exception('ERROR: host exist.')
-        if variable1 == '':
-            variable1 = '1'
+        if pnum == '':
+            pnum = '1'
     
-        newserver = serverinfo(project, hostname, host, variable1, variable2, variable3, variable4, variable5, variable6, variable7, variable8, variable9)
+        newserver = serverinfo(project, hostname, host, pnum, env, 'checkstatus', 'checktime', 'commitid', 'updatestatus', 'updatetime')
         db.session.add(newserver)
         db.session.commit()
     
@@ -682,18 +641,16 @@ def del_host():
 def update_host():
     R = {'status':'ok', 'log':'', 'data':''}
     try:
-        project = request.form.get('project', 'null').strip()
-        ip = request.form.get('hostip', 'null').strip()
-        hostname = request.form.get('hostname', 'null').strip()
-        variable1 = request.form.get('variable1', 'null').strip()
-        variable2 = request.form.get('variable2', 'null').strip()
-        variable3 = request.form.get('variable3', 'null').strip()
-        variable4 = request.form.get('variable4', 'null').strip()
-        variable5 = request.form.get('variable5', 'null').strip()
-        variable6 = request.form.get('variable6', '').strip()
-        variable7 = request.form.get('variable7', 'null').strip()
-        variable8 = request.form.get('variable8', 'null').strip()
-        variable9 = request.form.get('variable9', 'null').strip()
+        project      = request.form.get('project',     'null').strip()
+        hostname     = request.form.get('hostname',    'null').strip()
+        ip           = request.form.get('hostip',      'null').strip()
+        pnum         = request.form.get('pnum',        '1'   ).strip()
+        env          = request.form.get('env',         ''    ).strip()
+        checkstatus  = request.form.get('checkstatus', 'null').strip()
+        checktime    = request.form.get('checktime',   'null').strip()
+        commitid     = request.form.get('commitid',    'null').strip()
+        updatestatus = request.form.get('updatestatus','null').strip()
+        updatetime   = request.form.get('updatetime',  'null').strip()
     
         if project == 'null' or ip == 'null':
             raise Exception('ERROR: host null')
@@ -702,9 +659,9 @@ def update_host():
         serverinfo.query.filter(  serverinfo.project_name == project, 
                                   serverinfo.ip == ip
                                ).update({
-                                  "hostname": hostname, 
-                                  "variable1":variable1, 
-                                  "variable6":variable6
+                                  "hostname" : hostname, 
+                                  "pnum"     : pnum, 
+                                  "env"      : env
                                })
         db.session.commit()
     except Exception as err:
@@ -783,7 +740,7 @@ def deploy():
         s = os.system(   '''(cd %s/app/main/;nohup python deploy.py "%s" "%s" "%s" "%s" "%s" "%s" "%s") >>%s/%s.log 2>&1    &'''  
                          %(sys.path[0], project, tag, taskid, host, operation, currentuser, 'reason', log_path, project) )
         R['output'] = 'INFO: Please wait. %s in progress' %(operation)
-        newupdateoperation = updateoperation(taskid,  project, host, tag, operating_time, operation, R['output'], currentuser)
+        newupdateoperation = updateoperation(taskid,  project, host, tag, operating_time, operation, currentuser, R['status'], 'commitid')
         db.session.add(newupdateoperation)
         db.session.commit()
     except Exception as err:
@@ -825,7 +782,7 @@ def online_log_time():
         return json.dumps([['null', 'null', 'null', 'null', 'ERROR: SQL not correct']])
     rl = []
     for i in ones:
-        rl.append([i.operation, i.taskid, i.tag, i.project_name, i.loginfo, i.user])
+        rl.append([i.operation, i.taskid, i.tag, i.project_name, i.status, i.user, i.commitid])
     return json.dumps(rl)
 
 
@@ -841,7 +798,7 @@ def online_log_all():
         return json.dumps([['null', 'null', 'null', 'null', 'ERROR: SQL not correct']])
     rl = []
     for i in ones:
-        rl.append([i.operation, i.taskid, i.tag, i.project_name, i.loginfo, i.user])
+        rl.append([i.operation, i.taskid, i.tag, i.project_name, i.status, i.user, i.commitid])
     return json.dumps(rl)
 
 
@@ -855,7 +812,7 @@ def online_tag():
     try:
         ones = updateoperation.query.filter(  updateoperation.project_name == project, 
                                               updateoperation.operation.in_ ([ 'serviceUpdate']),
-                                              updateoperation.loginfo == 'ok'
+                                              updateoperation.status == 'ok'
                                            ).order_by(updateoperation.taskid.desc()).limit(15)
     except:
         return json.dumps(['ERROR: SQL not correct'])
@@ -873,7 +830,7 @@ def current_tag():
     try:
         ones = updateoperation.query.filter(  updateoperation.project_name == project, 
                                               updateoperation.operation.in_ ([ 'serviceUpdate','serviceFallback','serviceFastback']), 
-                                              updateoperation.loginfo == 'ok' 
+                                              updateoperation.status == 'ok' 
                                            ).order_by(updateoperation.taskid.desc()).limit(2)
         rl = [ones[0].tag]
     except:
@@ -891,7 +848,7 @@ def lastlog():
         return json.dumps([['project','null']])
     try:
         ones = updateoperation.query.filter( updateoperation.project_name == project, 
-                                             updateoperation.loginfo.notlike('%Repeat the update, Please wait%')
+                                             updateoperation.status != 'wait',
                                            ).order_by(updateoperation.taskid.desc()).limit(1)
         taskid = ones[0].taskid
         ones = updatelog.query.filter(updatelog.taskid == taskid ).all()
@@ -909,20 +866,14 @@ def lastlog():
 def update_project():
     R = {'status':'ok', 'log':'', 'data':''}
     try:
-        project = request.form.get('project', "null").strip()
+        business = request.form.get('business', "null").strip()
         environment = request.form.get('environment', "null").strip()
-        git = request.form.get('git', "null").strip()
-        branch = request.form.get('branch', "null").strip()
+        project = request.form.get('project', "null").strip()
         program_type = request.form.get('type', "null").strip()
         port = request.form.get('port', "0").strip()
-        make = request.form.get('make', "null").strip()
-        istag = request.form.get('istag', "null").strip()
-        isnginx = request.form.get('isnginx', "null").strip()
-        business = request.form.get('business', "null").strip()
-        ischeck = request.form.get('check', "null").strip()
-        checkurl = request.form.get('checkurl', "null").strip()
-        statuscode = request.form.get('statuscode', "null").strip()
-        if project == "null" or environment == "null" or branch == "null" or program_type == "null" or git == "null" or istag == "null":
+        git = request.form.get('git', "null").strip()
+        branch = request.form.get('branch', "null").strip()
+        if project == "null" or environment == "null" or branch == "null" or program_type == "null" or git == "null":
             raise Exception('ERROR: parameter error')
         project_name = environment + '_' + project
 
@@ -930,23 +881,17 @@ def update_project():
         if currentuser not in adminuser and environment == 'online':
             raise Exception('ERROR: update_project no authority')
 
-        logging.warning('update_project: %s, %s, %s, %s, %s, %s, %s, %s' %(
-                currentuser, project_name, git, branch, program_type, port, make, business) )
+        logging.warning('update_project: %s, %s, %s, %s, %s, %s, %s' %(
+                currentuser, business, program_type, project_name, git, branch, port) )
     
         projectinfo.query.filter(projectinfo.project_name == project_name).update({
-                             "project" : project, 
+                             "business"    : business, 
                              "environment" : environment, 
-                             "branch" : branch, 
-                             "type" : program_type, 
-                             "git" : git, 
-                             "port" : port, 
-                             "make" : make, 
-                             "istag" : istag, 
-                             "isnginx" : isnginx, 
-                             "business" : business, 
-                             "ischeck" : ischeck, 
-                             "checkurl" : checkurl, 
-                             "statuscode" : statuscode
+                             "project"     : project, 
+                             "type"        : program_type, 
+                             "port"        : port, 
+                             "git"         : git, 
+                             "branch"      : branch
                              })
 
         db.session.commit()
@@ -961,32 +906,34 @@ def update_project():
 def update_config():
     R = {'status':'ok', 'log':'', 'data':''}
     try:
-        project_name = request.form.get('project', "null").strip()
-        config1 = request.form.get('config1', "null").strip()
-        config2 = request.form.get('config2', "null").strip()
-        config3 = request.form.get('config3', "null").strip()
-        config4 = request.form.get('config4', "null").strip()
-        config5 = request.form.get('config5', "null").strip()
-        config6 = request.form.get('config6', "null").strip()
-        config7 = request.form.get('config7', "null").strip()
-        config8 = request.form.get('config8', "null").strip()
-        config9 = request.form.get('config9', "null").strip()
-        config10 = request.form.get('config10', "null").strip()
+        project_name = request.form.get('project',    "null").strip()
+        make         = request.form.get('make',       "null").strip()
+        supervisor   = request.form.get('supervisor', "null").strip()
+        config       = request.form.get('config',     "null").strip()
+        remarks      = request.form.get('remarks',    "null").strip()
+        startcmd     = request.form.get('startcmd',   "null").strip()
+        packfile     = request.form.get('packfile',   "null").strip()
+        istag        = request.form.get('istag',      "null").strip()
+        checkport    = request.form.get('checkport',  "null").strip()
+        checkhttp    = request.form.get('checkhttp',  "null").strip()
+        httpurl      = request.form.get('httpurl',    "null").strip()
+        httpcode     = request.form.get('httpcode',   "null").strip()
         if project_name == "null":
             raise Exception('ERROR: project error')
         currentuser = current_user.username
         logging.warning('update_config: %s, %s' %(currentuser, project_name) )
         project_config.query.filter(project_config.project_name == project_name).update({
-                "config1"  : config1, 
-                "config2"  : config2, 
-                "config3"  : config3, 
-                "config4"  : config4, 
-                "config5"  : config5, 
-                "config6"  : config6, 
-                "config7"  : config7, 
-                "config8"  : config8, 
-                "config9"  : config9, 
-                "config10" : config10 })
+                "make"        : make, 
+                "supervisor"  : supervisor, 
+                "config"      : config, 
+                "remarks"     : remarks, 
+                "startcmd"    : startcmd, 
+                "packfile"    : packfile, 
+                "istag"       : istag, 
+                "checkport"   : checkport, 
+                "checkhttp"   : checkhttp, 
+                "httpurl"     : httpurl, 
+                "httpcode"    : httpcode })
 
         db.session.commit()
     except Exception as err:
@@ -1003,7 +950,7 @@ def online_statistics():
         monday=datetime.date.today() - datetime.timedelta(days=datetime.date.today().weekday())
         monday_timestamp=time.mktime(time.strptime(monday.strftime('%Y-%m-%d %H:%M:%S'), '%Y-%m-%d %H:%M:%S'))
 
-        online_total=updateoperation.query.filter(updateoperation.project_name.like('online_%'),updateoperation.loginfo.notlike('%ERROR%'),updateoperation.taskid<monday_timestamp, updateoperation.taskid>monday_timestamp-2419200).all()
+        online_total=updateoperation.query.filter(updateoperation.project_name.like('online_%'),updateoperation.status.notlike('error'),updateoperation.taskid<monday_timestamp, updateoperation.taskid>monday_timestamp-2419200).all()
 
         statistical_result = {}
 
@@ -1202,16 +1149,8 @@ def expansion():
                 time.sleep(5)
         if status != 'ok':
             raise Exception('ERROR: expansion host %s ssh fail. %s' %(host, expansionInfo))
-        variable1 = "1"
-        variable2 = ""
-        variable3 = ""
-        variable4 = ""
-        variable5 = ""
-        variable6 = ""
-        variable7 = ""
-        variable8 = ""
-        variable9 = ""
-        newserver = serverinfo(project, hostname, host, variable1, variable2, variable3, variable4, variable5, variable6, variable7, variable8, variable9)
+        pnum = "1"
+        newserver = serverinfo(project, hostname, host, pnum, 'checkstatus', 'checktime', 'commitid', 'updatestatus', 'updatetime')
         db.session.add(newserver)
         db.session.commit()
         ones = projectinfo.query.filter(projectinfo.project_name == project ).first()
@@ -1245,7 +1184,7 @@ def expansion():
         except Exception as err:
             logging.error(str(err))
     try:
-        newupdateoperation = updateoperation(taskid, project, host, tag, rtime, operation, R['output'], currentuser)
+        newupdateoperation = updateoperation(taskid, project, host, tag, rtime, operation, currentuser, R['status'], 'commitid')
         db.session.add(newupdateoperation)
         db.session.commit()
     except Exception as err:

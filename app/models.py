@@ -35,29 +35,25 @@ class serverinfo(db.Model):
     project_name = db.Column(db.String(64) , index=True)
     hostname = db.Column(db.String(64))
     ip = db.Column(db.String(64))
-    variable1 = db.Column(db.String(64))
-    variable2 = db.Column(db.String(64))
-    variable3 = db.Column(db.String(64))
-    variable4 = db.Column(db.String(64))
-    variable5 = db.Column(db.String(64))
-    variable6 = db.Column(db.String(64))
-    variable7 = db.Column(db.String(64))
-    variable8 = db.Column(db.String(64))
-    variable9 = db.Column(db.String(64))
+    pnum = db.Column(db.String(32))
+    env = db.Column(db.String(3200))
+    checkstatus = db.Column(db.String(64))
+    checktime = db.Column(db.String(64))
+    commitid = db.Column(db.String(64))
+    updatestatus = db.Column(db.String(64))
+    updatetime = db.Column(db.String(64))
 
-    def __init__(self, project_name, hostname, ip, variable1, variable2, variable3, variable4, variable5, variable6, variable7, variable8, variable9):
+    def __init__(self, project_name, hostname, ip, pnum, env, checkstatus, checktime, commitid, updatestatus, updatetime):
         self.project_name = project_name
         self.hostname = hostname
         self.ip = ip
-        self.variable1 = variable1
-        self.variable2 = variable2
-        self.variable3 = variable3
-        self.variable4 = variable4
-        self.variable5 = variable5
-        self.variable6 = variable6
-        self.variable7 = variable7
-        self.variable8 = variable8
-        self.variable9 = variable9
+        self.pnum = pnum
+        self.env = env
+        self.checkstatus = checkstatus
+        self.checktime = checktime
+        self.commitid = commitid
+        self.updatestatus = updatestatus
+        self.updatetime = updatetime
 
 
 class userservicegroup(db.Model):
@@ -75,63 +71,55 @@ class userservicegroup(db.Model):
 class projectinfo(db.Model):
     __tablename__ = 'projectinfo'
     project_name = db.Column(db.String(64), primary_key=True)
-    project = db.Column(db.String(64))
-    environment = db.Column(db.String(64))
-    branch = db.Column(db.String(64))
-    type = db.Column(db.String(50))
-    git = db.Column(db.String(1024))
-    port = db.Column(db.Integer)
-    make = db.Column(db.Text)
-    istag = db.Column(db.String(10))
-    isnginx = db.Column(db.String(10))
     business = db.Column(db.String(40))
-    ischeck = db.Column(db.String(10))
-    checkurl = db.Column(db.String(300))
-    statuscode = db.Column(db.String(8))
+    environment = db.Column(db.String(64))
+    project = db.Column(db.String(64))
+    type = db.Column(db.String(50))
+    port = db.Column(db.Integer)
+    git = db.Column(db.String(1024))
+    branch = db.Column(db.String(64))
 
-    def __init__(self, project_name, project, environment, branch, type, git, port, make, istag, isnginx, business, ischeck, checkurl, statuscode):
+
+    def __init__(self, project_name, business, environment, project, type, port, git, branch):
         self.project_name = project_name
-        self.project = project
-        self.environment = environment
-        self.branch = branch
-        self.type = type
-        self.git = git
-        self.port = port
-        self.make = make
-        self.istag = istag
-        self.isnginx = isnginx
         self.business = business
-        self.ischeck = ischeck
-        self.checkurl = checkurl
-        self.statuscode = statuscode
+        self.environment = environment
+        self.project = project
+        self.type = type
+        self.port = port
+        self.git = git
+        self.branch = branch
 
 
 class project_config(db.Model):
     __tablename__ = 'project_config'
     project_name = db.Column(db.String(64), primary_key=True)
-    config1 = db.Column(db.Text)
-    config2 = db.Column(db.Text)
-    config3 = db.Column(db.Text)
-    config4 = db.Column(db.Text)
-    config5 = db.Column(db.Text)
-    config6 = db.Column(db.Text)
-    config7 = db.Column(db.Text)
-    config8 = db.Column(db.Text)
-    config9 = db.Column(db.Text)
-    config10 = db.Column(db.Text)
+    make = db.Column(db.Text)
+    supervisor = db.Column(db.Text)
+    config = db.Column(db.Text)
+    remarks = db.Column(db.Text)
+    startcmd = db.Column(db.String(200))
+    packfile = db.Column(db.String(200))
+    istag = db.Column(db.String(10))
+    checkport = db.Column(db.String(10))
+    checkhttp = db.Column(db.String(10))
+    httpurl = db.Column(db.String(2000))
+    httpcode = db.Column(db.String(8))
 
-    def __init__(self, project_name, config1, config2, config3, config4, config5, config6, config7, config8, config9, config10):
+
+    def __init__(self, project_name, make, supervisor, config, remarks, startcmd, packfile, istag, checkport, checkhttp, httpurl, httpcode):
         self.project_name = project_name
-        self.config1 = config1
-        self.config2 = config2
-        self.config3 = config3
-        self.config4 = config4
-        self.config5 = config5
-        self.config6 = config6
-        self.config7 = config7
-        self.config8 = config8
-        self.config9 = config9
-        self.config10 = config10
+        self.make = make
+        self.supervisor = supervisor
+        self.config = config
+        self.remarks = remarks
+        self.startcmd = startcmd
+        self.packfile = packfile
+        self.istag = istag
+        self.checkport = checkport
+        self.checkhttp = checkhttp 
+        self.httpurl = httpurl
+        self.httpcode = httpcode
 
 
 class updatelog(db.Model):
@@ -163,18 +151,20 @@ class updateoperation(db.Model):
     tag = db.Column(db.String(64))
     rtime = db.Column(db.String(32))
     operation = db.Column(db.String(64))
-    loginfo = db.Column(db.String(6400))
     user = db.Column(db.String(50))
+    status = db.Column(db.String(20))
+    commitid = db.Column(db.String(1024))
 
-    def __init__(self, taskid, project_name, hostlist, tag, rtime, operation, loginfo, user):
+    def __init__(self, taskid, project_name, hostlist, tag, rtime, operation, user, status, commitid):
         self.taskid = taskid
         self.project_name = project_name
         self.hostlist = hostlist
         self.tag = tag
         self.rtime = rtime
         self.operation = operation
-        self.loginfo = loginfo
         self.user = user
+        self.status = status
+        self.commitid = commitid
 
 
 class workorder(db.Model):

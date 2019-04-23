@@ -44,18 +44,12 @@ function push_add_host_table(p){
     }
     $.getJSON('/project_info', param, function(data){
         var htm=['<table class="table table-hover">'];
-        if (data[4]=='python' || data[4]=='nodejs'){
-            htm.push('<thead><tr><th>hostname</th><th >ip</th><th >pnum</th><th >env</th><th >add host</th></thead>');
-        } else {
-            htm.push('<thead><tr><th>hostname</th><th >ip</th><th >env</th><th >add host</th></thead>');
-        }
+        htm.push('<thead><tr><th>hostname</th><th >ip</th><th >pnum</th><th >env</th><th >add host</th></thead>');
         htm.push('<tr>');
         htm.push('<td>'+'<input type="text" class="form-control" id="add_hostname" placeholder="host-01" value="">'+'</td>');
         htm.push('<td>'+'<input type="text" class="form-control" id="add_ip" placeholder="10.10.10.10" value="">'+'</td>');
-        if ( data[4]=='python' || data[4]=='nodejs'){
-            htm.push('<td>'+'<input type="text" class="form-control" id="add_variable1" placeholder="" value="">'+'</td>');
-        }
-        htm.push('<td>'+'<input type="text" class="form-control" id="add_variable6" placeholder="" value="">'+'</td>');
+        htm.push('<td>'+'<input type="text" class="form-control" id="add_pnum" placeholder="" value="1">'+'</td>');
+        htm.push('<td>'+'<input type="text" class="form-control" id="add_env" placeholder="" value="">'+'</td>');
         htm.push('<td><button id="add_host" class="btn btn-small btn-success" project="'+project+'" >确认添加</button></td>');
         htm.push('</tr>');
         htm.push('</table>');
@@ -92,19 +86,13 @@ $("body").on('click', '#open_edit_host', function(){
 
 $("body").on('click', '#add_project', function(){
     if (confirm('请确认项目信息')) {
-        var add_type = $('#add_type').val()
-        var add_nproject = $('#add_nproject').val()
+        var add_business = $('#add_business').val()
         var add_environment = $('#add_environment').val()
+        var add_project = $('#add_nproject').val()
+        var add_type = $('#add_type').val()
+        var add_port = $('#add_port').val()
         var add_git = $('#add_git').val()
         var add_branch = $('#add_branch').val()
-        var add_port = $('#add_port').val()
-        var add_make = $('#add_make').val()
-        var add_istag = $('#add_istag').val()
-        var add_isnginx = $('#add_isnginx').val()
-        var add_business = $('#add_business').val()
-        var add_check = $('#add_check').val()
-        var add_checkurl = $('#add_checkurl').val()
-        var add_statuscode = $('#add_statuscode').val()
 
         if(!add_business ){
             alert('business null');
@@ -119,7 +107,7 @@ $("body").on('click', '#add_project', function(){
             alert('git branch null');
             return false;
         }
-        if(!add_nproject ){
+        if(!add_project ){
             alert('project null');
             return false;
         }
@@ -131,10 +119,6 @@ $("body").on('click', '#add_project', function(){
             alert('git addr null');
             return false;
         }
-        if(!add_istag){
-            alert('tag yes/no');
-            return false;
-        }
         if(add_type == 'nodejs'){
             if(add_port < 3000 || add_port >5000){
                 alert('python port [3000 - 5000]');
@@ -143,19 +127,13 @@ $("body").on('click', '#add_project', function(){
         }
 
         var param = {
-            project: add_nproject,
+            business:add_business,
             environment: add_environment,
-            branch: add_branch,
+            project: add_project,
             type: add_type,
             port: add_port,
             git: add_git,
-            make: add_make,
-            istag: add_istag,
-            isnginx: add_isnginx,
-            business:add_business,
-            check: add_check,
-            checkurl: add_checkurl,
-            statuscode: add_statuscode,
+            branch: add_branch
         }
 
         $.post('/add_project', param, function(data){
@@ -173,29 +151,23 @@ $("body").on('click', '#add_project', function(){
 
 $("body").on('click', '#update_project', function(){
     if (confirm('请确认项目信息')) {
-        var add_type = $('#add_type').val()
-        var add_nproject = $('#add_nproject').val()
+        var add_business    = $('#add_business').val()
         var add_environment = $('#add_environment').val()
-        var add_git = $('#add_git').val()
-        var add_branch = $('#add_branch').val()
-        var add_port = $('#add_port').val()
-        var add_make = $('#add_make').val()
-        var add_istag = $('#add_istag').val()
-        var add_isnginx = $('#add_isnginx').val()
-        var add_business = $('#add_business').val()
-        var add_check = $('#add_check').val()
-        var add_checkurl = $('#add_checkurl').val()
-        var add_statuscode = $('#add_statuscode').val()
+        var add_project     = $('#add_nproject').val()
+        var add_type        = $('#add_type').val()
+        var add_port        = $('#add_port').val()
+        var add_git         = $('#add_git').val()
+        var add_branch      = $('#add_branch').val()
 
-        if(!add_environment ){
+        if(!add_environment){
             alert('environment null');
             return false;
         }
-        if(!add_branch ){
+        if(!add_branch){
             alert('git branch null');
             return false;
         }
-        if(!add_nproject ){
+        if(!add_project){
             alert('project null');
             return false;
         }
@@ -207,25 +179,14 @@ $("body").on('click', '#update_project', function(){
             alert('git addr null');
             return false;
         }
-        if(!add_istag){
-            alert('tag yes/no');
-            return false;
-        }
-
         var param = {
-            project: add_nproject,
+            business: add_business,
             environment: add_environment,
-            branch: add_branch,
+            project: add_project,
             type: add_type,
             port: add_port,
             git: add_git,
-            make: add_make,
-            istag: add_istag,
-            isnginx: add_isnginx,
-            business: add_business,
-            check: add_check,
-            checkurl: add_checkurl,
-            statuscode: add_statuscode,
+            branch: add_branch,
         }
 
         $.post('/update_project', param, function(data){
@@ -257,8 +218,8 @@ function push_add_project_table(){
     htm.push('</tr>');
 
     htm.push('<tr>');
-    htm.push('<td width="120" align="right">type:</td>');
-    htm.push('<td>'+'<select class="form-control" id="add_type"><option value="golang" selected = "selected">golang</option><option value="go">go-bin</option><option value="php">php</option><option value="python">python</option><option value="static">static</option><option value="jobs">jobs</option><option value="nodejs">nodejs</option><option value="sh">sh</option></select>'+'</td>');
+    htm.push('<td width="120" align="right">environment:</td>');
+    htm.push('<td>'+'<select class="form-control" id="add_environment"><option value="test" selected = "selected">test</option><option value="online">online</option><option value="pre" >pre</option><option value="beta">beta</option><option value="dev">dev</option><option value="offline">offline</option><option value="qa">qa</option><option value="job">job</option></select>'+'</td>');
     htm.push('</tr>');
 
     htm.push('<tr>');
@@ -267,8 +228,13 @@ function push_add_project_table(){
     htm.push('</tr>');
 
     htm.push('<tr>');
-    htm.push('<td width="120" align="right">environment:</td>');
-    htm.push('<td>'+'<select class="form-control" id="add_environment"><option value="test" selected = "selected">test</option><option value="online">online</option><option value="pre" >pre</option><option value="beta">beta</option><option value="dev">dev</option><option value="offline">offline</option><option value="qa">qa</option><option value="job">job</option></select>'+'</td>');
+    htm.push('<td width="120" align="right">type:</td>');
+    htm.push('<td>'+'<select class="form-control" id="add_type"><option value="golang" selected = "selected">golang</option><option value="go">go-bin</option><option value="php">php</option><option value="python">python</option><option value="static">static</option><option value="jobs">jobs</option><option value="nodejs">nodejs</option><option value="sh">sh</option></select>'+'</td>');
+    htm.push('</tr>');
+
+    htm.push('<tr>');
+    htm.push('<td width="120" align="right">port:</td>');
+    htm.push('<td>'+'<input type="text" class="form-control" id="add_port" placeholder="go port[8000-10000]  nodejs port[3000-5000] python port [5000-7000]" value="">'+'</td>');
     htm.push('</tr>');
 
     htm.push('<tr>');
@@ -278,45 +244,8 @@ function push_add_project_table(){
 
     htm.push('<tr>');
     htm.push('<td width="120" align="right">branch:</td>');
-    htm.push('<td>'+'<input type="text" class="form-control" id="add_branch" placeholder="online" value="">'+'</td>');
+    htm.push('<td>'+'<input type="text" class="form-control" id="add_branch" placeholder="master" value="master">'+'</td>');
     htm.push('</tr>');
-
-    htm.push('<tr>');
-    htm.push('<td width="120" align="right">port:</td>');
-    htm.push('<td>'+'<input type="text" class="form-control" id="add_port" placeholder="go port[8000-10000]  nodejs port[3000-5000] python port [5000-7000]" value="">'+'</td>');
-    htm.push('</tr>');
-
-    htm.push('<tr>');
-    htm.push('<td width="120" align="right">make:</td>');
-    htm.push('<td>'+'<input type="text" class="form-control" id="add_make" placeholder="shell cmd1  && shell cmd2" value="">'+'</td>');
-    htm.push('</tr>');
-
-    htm.push('<tr>');
-    htm.push('<td width="120" align="right">tag:</td>');
-    htm.push('<td>'+'<select class="form-control" id="add_istag"><option value="yes">yes</option><option value="no" selected = "selected">no</option></select>'+'</td>');
-    htm.push('</tr>');
-
-    htm.push('<tr>');
-    htm.push('<td width="120" align="right">Nginx</td>');
-    htm.push('<td>'+'<select class="form-control" id="add_isnginx"><option value="no" selected = "selected">no</option><option value="yes">yes</option></select>'+'</td>');
-    htm.push('</tr>');
-
-
-    htm.push('<tr>');
-    htm.push('<td width="120" align="right">httpCheck:</td>');
-    htm.push('<td>'+'<select class="form-control" id="add_check"><option value="no" selected = "selected">no</option><option value="yes">yes</option></select>'+'</td>');
-    htm.push('</tr>');
-
-    htm.push('<tr>');
-    htm.push('<td width="120" align="right">checkURL:</td>');
-    htm.push('<td>'+'<input type="text" class="form-control" id="add_checkurl" placeholder="/" value="/">'+'</td>');
-    htm.push('</tr>');
-
-    htm.push('<tr>');
-    htm.push('<td width="120" align="right">statusCode:</td>');
-    htm.push('<td>'+'<input type="text" class="form-control" id="add_statuscode" placeholder="200" value="200">'+'</td>');
-    htm.push('</tr>');
-
 
     htm.push('<tr>');
     htm.push('<td></td>');
@@ -333,30 +262,16 @@ function push_add_project_table(){
 $("body").on('click', '#add_host', function(){
     if (confirm('确认提交？')) {
         var add_hostname = $('#add_hostname').val()
-        var add_ip = $('#add_ip').val()
-        var add_project = $('#add_host').attr('project')
-        var add_variable1 = $('#add_variable1').val()
-        var add_variable2 = $('#add_variable2').val()
-        var add_variable3 = $('#add_variable3').val()
-        var add_variable4 = $('#add_variable4').val()
-        var add_variable5 = $('#add_variable5').val()
-        var add_variable6 = $('#add_variable6').val()
-        var add_variable7 = $('#add_variable7').val()
-        var add_variable8 = $('#add_variable8').val()
-        var add_variable9 = $('#add_variable9').val()
+        var add_ip       = $('#add_ip').val()
+        var add_project  = $('#add_host').attr('project')
+        var add_pnum     = $('#add_pnum').val()
+        var add_env      = $('#add_env').val()
         var param = {
             hostname: add_hostname,
             host: add_ip,
             project: add_project,
-            variable1: add_variable1,
-            variable2: add_variable2,
-            variable3: add_variable3,
-            variable4: add_variable4,
-            variable5: add_variable5,
-            variable6: add_variable6,
-            variable7: add_variable7,
-            variable8: add_variable8,
-            variable9: add_variable9
+            pnum: add_pnum,
+            env: add_env
         }
 
         $.post('/add_host', param, function(data){
@@ -436,20 +351,20 @@ $("body").on('click', '#add_user', function(){
 
 
 $("body").on('click', '#update_host', function(){
-    var num = $(this).attr('i')
-    var project = $(this).attr('project')
+    var num      = $(this).attr('i')
+    var project  = $(this).attr('project')
     var hostname = $('#hostname'+num).val()
-    var hostip = $('#hostip'+num).val()
-    var variable1 = $('#variable1'+num).val()
-    var variable6 = $('#variable6'+num).val()
+    var hostip   = $('#hostip'+num).val()
+    var pnum     = $('#pnum'+num).val()
+    var env      = $('#env'+num).val()
 
     if (confirm('请确认更新: '+host)) {
         var param = {
             hostip:    hostip,
             hostname:  hostname,
             project:   project,
-            variable1: variable1,
-            variable6: variable6,
+            pnum:      pnum,
+            env:       env
         }
         $.post('/update_host', param, function(data){
             host_list_table(project)
@@ -524,29 +439,6 @@ $("#back_submit").on('click', function(){
         }
     });
 });
-
-//$("#back_submit").on('click', function(){
-//    var  p = $('#ipt_project').val()
-//    if (p != undefined){
-//        var param = {
-//            project: p,
-//            operation: 'serviceFallback',
-//            tag: $('#select_tag').val(),
-//        };
-//        $.getJSON('/lock_check', param, function(data){
-//            if(data['status'] == "ok"){
-//                if (confirm('请确认回滚'+ p +'？')) {
-//                    updateonline(param)
-//                };
-//            }else{
-//                alert(data['user'] + '正在操作，请勿重复执行！')
-//            }
-//        });
-//    }
-//    else{
-//        alert('project_name null');
-//    };
-//});
 
 
 
@@ -794,11 +686,6 @@ function project_info(p){
 
             htm.push('<tr>');
             htm.push('<td width="120" align="right">Business line:</td>');
-            htm.push('<td>'+data[9]+'</td>');
-            htm.push('</tr>');
-
-            htm.push('<tr>');
-            htm.push('<td width="120" align="right">project:</td>');
             htm.push('<td>'+data[0]+'</td>');
             htm.push('</tr>');
 
@@ -808,53 +695,28 @@ function project_info(p){
             htm.push('</tr>');
 
             htm.push('<tr>');
-            htm.push('<td width="120" align="right">git:</td>');
+            htm.push('<td width="120" align="right">project:</td>');
             htm.push('<td>'+data[2]+'</td>');
             htm.push('</tr>');
 
             htm.push('<tr>');
-            htm.push('<td width="120" align="right">branch:</td>');
+            htm.push('<td width="120" align="right">type:</td>');
             htm.push('<td>'+data[3]+'</td>');
             htm.push('</tr>');
 
             htm.push('<tr>');
-            htm.push('<td width="120" align="right">type:</td>');
+            htm.push('<td width="120" align="right">port:</td>');
             htm.push('<td>'+data[4]+'</td>');
             htm.push('</tr>');
 
             htm.push('<tr>');
-            htm.push('<td width="120" align="right">port:</td>');
+            htm.push('<td width="120" align="right">git:</td>');
             htm.push('<td>'+data[5]+'</td>');
             htm.push('</tr>');
 
             htm.push('<tr>');
-            htm.push('<td width="120" align="right">make:</td>');
+            htm.push('<td width="120" align="right">branch:</td>');
             htm.push('<td>'+data[6]+'</td>');
-            htm.push('</tr>');
-
-            htm.push('<tr>');
-            htm.push('<td width="120" align="right">tag:</td>');
-            htm.push('<td>'+data[7]+'</td>');
-            htm.push('</tr>');
-
-            htm.push('<tr>');
-            htm.push('<td width="120" align="right">isnginx:</td>');
-            htm.push('<td>'+data[8]+'</td>');
-            htm.push('</tr>');
-
-            htm.push('<tr>');
-            htm.push('<td width="120" align="right">httpCheck:</td>');
-            htm.push('<td>'+data[10]+'</td>');
-            htm.push('</tr>');
-
-            htm.push('<tr>');
-            htm.push('<td width="120" align="right">checkURL:</td>');
-            htm.push('<td>'+data[11]+'</td>');
-            htm.push('</tr>');
-
-            htm.push('<tr>');
-            htm.push('<td width="120" align="right">statusCode:</td>');
-            htm.push('<td>'+data[12]+'</td>');
             htm.push('</tr>');
 
             htm.push('<tr>');
@@ -888,12 +750,60 @@ function config_info(p){
             htm.push('<td colspan="2">'+'numprocs = $pnum$'+'</td>');
             htm.push('</tr>');
 
-                for(var i=0,len=data.length; i<len; i++){
-                    htm.push('<tr>');
-                    htm.push('<td width="120" align="right">'+data[i][0]+':</td>');
-                    htm.push('<td><textarea id="config'+i+'" rows="5" cols="100"  readonly="readonly" >'+data[i][1]+'</textarea></td>');
-                    htm.push('</tr>');
-                }
+            htm.push('<tr>');
+            htm.push('<td width="120" align="right">'+data[0][0]+':</td>');
+            htm.push('<td><textarea id="'+data[0][0]+'" rows="5" cols="100"  readonly="readonly" >'+data[0][1]+'</textarea></td>');
+            htm.push('</tr>');
+
+            htm.push('<tr>');
+            htm.push('<td width="120" align="right">'+data[1][0]+':</td>');
+            htm.push('<td><textarea id="'+data[1][0]+'" rows="5" cols="100"  readonly="readonly" >'+data[1][1]+'</textarea></td>');
+            htm.push('</tr>');
+
+            htm.push('<tr>');
+            htm.push('<td width="120" align="right">'+data[2][0]+':</td>');
+            htm.push('<td><textarea id="'+data[2][0]+'" rows="5" cols="100"  readonly="readonly" >'+data[2][1]+'</textarea></td>');
+            htm.push('</tr>');
+
+            htm.push('<tr>');
+            htm.push('<td width="120" align="right">'+data[3][0]+':</td>');
+            htm.push('<td><textarea id="'+data[3][0]+'" rows="5" cols="100"  readonly="readonly" >'+data[3][1]+'</textarea></td>');
+            htm.push('</tr>');
+
+            htm.push('<tr>');
+            htm.push('<td width="120" align="right">'+data[4][0]+':</td>');
+            htm.push('<td><textarea id="'+data[4][0]+'" rows="5" cols="100"  readonly="readonly" >'+data[4][1]+'</textarea></td>');
+            htm.push('</tr>');
+
+            htm.push('<tr>');
+            htm.push('<td width="120" align="right">'+data[5][0]+':</td>');
+            htm.push('<td><textarea id="'+data[5][0]+'" rows="5" cols="100"  readonly="readonly" >'+data[5][1]+'</textarea></td>');
+            htm.push('</tr>');
+
+            htm.push('<tr>');
+            htm.push('<td width="120" align="right">'+data[6][0]+':</td>');
+            htm.push('<td>'+data[6][1]+'</td>');
+            htm.push('</tr>');
+
+            htm.push('<tr>');
+            htm.push('<td width="120" align="right">'+data[7][0]+':</td>');
+            htm.push('<td>'+data[7][1]+'</td>');
+            htm.push('</tr>');
+
+            htm.push('<tr>');
+            htm.push('<td width="120" align="right">'+data[8][0]+':</td>');
+            htm.push('<td>'+data[8][1]+'</td>');
+            htm.push('</tr>');
+
+            htm.push('<tr>');
+            htm.push('<td width="120" align="right">'+data[9][0]+':</td>');
+            htm.push('<td>'+data[9][1]+'</td>');
+            htm.push('</tr>');
+
+            htm.push('<tr>');
+            htm.push('<td width="120" align="right">'+data[10][0]+':</td>');
+            htm.push('<td>'+data[10][1]+'</td>');
+            htm.push('</tr>');
 
             htm.push('</table>');
             $('#config_div').html(htm.join(''));
@@ -912,11 +822,7 @@ function host_list_table(p){
         var htm=['<table class="table table-hover">'];
         if (data!='' && data!=undefined && data!=null){
             if($('#leftDiv').attr('path') == "online"){
-                if (data[0][3]=='python' || data[0][3]=='nodejs'){
-                    htm.push('<thead><tr><th>hostname</th><th>ip</th><th>pnum</th><th>status</th><th>checkTime</th><th>commitID</th><th>UpdateTime</th><th>stop</th></thead>');
-                } else {
-                    htm.push('<thead><tr><th>hostname</th><th>ip</th><th>status</th><th>checkTime</th><th>commitID</th><th>UpdateTime</th><th>stop</th></thead>');
-                }
+                htm.push('<thead><tr><th>hostname</th><th>ip</th><th>pnum</th><th>status</th><th>checkTime</th><th>commitID</th><th>UpdateTime</th><th>stop</th></thead>');
                 for(var i=0,len=data.length; i<len; i++){
                     if(data[i][1] != "essExpansion"){
                         htm.push('<tr>');
@@ -929,16 +835,16 @@ function host_list_table(p){
                         if (data[0][3]=='python' || data[0][3]=='nodejs'){
                             htm.push('<td>'+data[i][4]+'</td>');
                         }
-                        if(data[i][5] == "RUNNING"){
-                            htm.push('<td><div id="status'+data[i][0].replace(/\./g,"-")+'" class="sidebar-menu"><font color="Lime">'+data[i][5]+'</font></div></td>');
-                        } else if(data[i][5] == "SSHOK"){
-                            htm.push('<td><div id="status'+data[i][0].replace(/\./g,"-")+'" class="sidebar-menu"><font color="#FF9900">'+data[i][5]+'</font></div></td>');
+                        if(data[i][6] == "RUNNING"){
+                            htm.push('<td><div id="status'+data[i][0].replace(/\./g,"-")+'" class="sidebar-menu"><font color="Lime">'+data[i][6]+'</font></div></td>');
+                        } else if(data[i][6] == "SSHOK"){
+                            htm.push('<td><div id="status'+data[i][0].replace(/\./g,"-")+'" class="sidebar-menu"><font color="#FF9900">'+data[i][6]+'</font></div></td>');
                         } else {
-                            htm.push('<td><div id="status'+data[i][0].replace(/\./g,"-")+'" class="sidebar-menu"><font color="red">'+data[i][5]+'</font></div></td>');
+                            htm.push('<td><div id="status'+data[i][0].replace(/\./g,"-")+'" class="sidebar-menu"><font color="red">'+data[i][6]+'</font></div></td>');
                         }
-                        htm.push('<td><div id="checkTime'+data[i][0].replace(/\./g,"-")+'" class="sidebar-menu">'+data[i][8]+'</div></td>');
-                        htm.push('<td><div id="commitID'+data[i][0].replace(/\./g,"-")+'" class="sidebar-menu">'+data[i][6]+'</div></td>');
-                        htm.push('<td><div id="UpdateTime'+data[i][0].replace(/\./g,"-")+'" class="sidebar-menu">'+data[i][7]+'</div></td>');
+                        htm.push('<td><div id="checkTime'+data[i][0].replace(/\./g,"-")+'" class="sidebar-menu">'+data[i][7]+'</div></td>');
+                        htm.push('<td><div id="commitID'+data[i][0].replace(/\./g,"-")+'" class="sidebar-menu">'+data[i][8]+'</div></td>');
+                        htm.push('<td><div id="UpdateTime'+data[i][0].replace(/\./g,"-")+'" class="sidebar-menu">'+data[i][10]+'</div></td>');
                         htm.push('<td>'+'<a href="javascript:;" onclick=stop_submit("'+data[i][0]+'");>stop</a>'+'</td>');
                         htm.push('</tr>');
                     }
@@ -946,28 +852,22 @@ function host_list_table(p){
             }
 
             if($('#leftDiv').attr('path') == "project_admin"){
-                if (data[0][3]=='python'|| data[0][3]=='nodejs'){
-                    htm.push('<thead><tr><th>hostname</th><th>ip</th><th>pnum</th><th>status</th><th>ENV</th><th>DeployConf</th><th>save</th><th>delete</th></tr></thead>');
-                } else {
-                    htm.push('<thead><tr><th>hostname</th><th>ip</th><th>status</th><th>ENV</th><th>DeployConf</th><th>save</th><th>delete</th></tr></thead>');
-                }
+                htm.push('<thead><tr><th>hostname</th><th>ip</th><th>pnum</th><th>ENV</th><th>status</th><th>DeployConf</th><th>save</th><th>delete</th></tr></thead>');
                 for(var i=0,len=data.length; i<len; i++){
                     if(data[i][1] != "essExpansion"){
                         htm.push('<tr>');
                         htm.push('<td>'+'<input type="text" class="form-control" id="hostname'+i+'" placeholder="hostname" value="'+data[i][1]+'">'+'</td>');
                         htm.push('<td>'+'<input type="text" readOnly="true" class="form-control" id="hostip'+i+'" placeholder="data[i][0]" value="'+data[i][0]+'">'+'</td>');
-                        if (data[0][3]=='nodejs' || data[0][3]=='python'){
-                            htm.push('<td>'+'<input type="text" class="form-control" id="variable1'+i+'" placeholder="variable1" value="'+data[i][4]+'">'+'</td>');
-                        }
-                        if(data[i][5] == "RUNNING"){
-                            htm.push('<td>'+'<font color="Lime">'+data[i][5]+'</font>'+'</td>');
-                        } else if(data[i][5] == "SSHOK"){
-                            htm.push('<td>'+'<font color="#FF9900">'+data[i][5]+'</font>'+'</td>');
+                        htm.push('<td>'+'<input type="text" class="form-control" id="pnum'+i+'" placeholder="pnum" value="'+data[i][4]+'">'+'</td>');
+                        htm.push('<td>'+'<input type="text" class="form-control" id="env'+i+'" placeholder="a=1,b=2" value="'+data[i][5]+'">'+'</td>');
+                        if(data[i][6] == "RUNNING"){
+                            htm.push('<td>'+'<font color="Lime">'+data[i][6]+'</font>'+'</td>');
+                        } else if(data[i][6] == "SSHOK"){
+                            htm.push('<td>'+'<font color="#FF9900">'+data[i][6]+'</font>'+'</td>');
                         }else{
-                            htm.push('<td>'+'<font color="red">'+data[i][5]+'</font>'+'</td>');
+                            htm.push('<td>'+'<font color="red">'+data[i][6]+'</font>'+'</td>');
                         }
-                        htm.push('<td>'+'<input type="text" class="form-control" id="variable6'+i+'" placeholder="a=1,b=2" value="'+data[i][9]+'">'+'</td>');
-                        htm.push('<td><button id="deploy_config" host="'+data[i][0]+'" class="btn btn-sm btn-danger" project="'+p+'" >更新配置</button></td>');
+                        htm.push('<td><button id="deploy_config" host="'+data[i][0]+'" class="btn btn-sm btn-danger" project="'+p+'" >更新supervisor</button></td>');
                         htm.push('<td><button id="update_host" host="'+data[i][0]+'" i="'+i+'" class="btn btn-sm btn-danger" project="'+p+'" >保存</button></td>');
                         htm.push('<td><button id="del_host" host="'+data[i][0]+'" class="btn btn-sm btn-danger" project="'+p+'" >delete</button></td>');
                         htm.push('</tr>');
@@ -986,16 +886,16 @@ function host_list_status(p){
     $.getJSON('/hostlist', param,  function(data){
         if (data!='' && data!=undefined && data!=null){
             for(var i=0,len=data.length; i<len; i++){
-                if(data[i][5] == "RUNNING"){
-                    $('#status'+data[i][0].replace(/\./g,"-")).html('<font color="Lime">'+data[i][5]+'</font>');
-                } else if(data[i][5] == "SSHOK"){
-                    $('#status'+data[i][0].replace(/\./g,"-")).html('<font color="#FF9900">'+data[i][5]+'</font>');
+                if(data[i][6] == "RUNNING"){
+                    $('#status'+data[i][0].replace(/\./g,"-")).html('<font color="Lime">'+data[i][6]+'</font>');
+                } else if(data[i][6] == "SSHOK"){
+                    $('#status'+data[i][0].replace(/\./g,"-")).html('<font color="#FF9900">'+data[i][6]+'</font>');
                 } else {
-                    $('#status'+data[i][0].replace(/\./g,"-")).html('<font color="red">'+data[i][5]+'</font>');
+                    $('#status'+data[i][0].replace(/\./g,"-")).html('<font color="red">'+data[i][6]+'</font>');
                 }
-                $('#checkTime'+data[i][0].replace(/\./g,"-")).html(data[i][8]);
-                $('#commitID'+data[i][0].replace(/\./g,"-")).html(data[i][6]);
-                $('#UpdateTime'+data[i][0].replace(/\./g,"-")).html(data[i][7]);
+                $('#checkTime'+data[i][0].replace(/\./g,"-")).html(data[i][7]);
+                $('#commitID'+data[i][0].replace(/\./g,"-")).html(data[i][8]);
+                $('#UpdateTime'+data[i][0].replace(/\./g,"-")).html(data[i][10]);
             }
 
         }
@@ -1386,12 +1286,7 @@ function push_edit_project_table(p){
 
             htm.push('<tr>');
             htm.push('<td width="120" align="right">Business line:</td>');
-            htm.push('<td>'+'<input type="text" class="form-control" id="add_business" placeholder="" value="'+data[9]+'">'+'</td>');
-            htm.push('</tr>');
-
-            htm.push('<tr>');
-            htm.push('<td width="120" align="right">project:</td>');
-            htm.push('<td>'+'<input type="text" readOnly="true" class="form-control" id="add_nproject" placeholder="api" value="'+data[0]+'">'+'</td>');
+            htm.push('<td>'+'<input type="text" class="form-control" id="add_business" placeholder="" value="'+data[0]+'">'+'</td>');
             htm.push('</tr>');
 
             htm.push('<tr>');
@@ -1400,74 +1295,29 @@ function push_edit_project_table(p){
             htm.push('</tr>');
 
             htm.push('<tr>');
-            htm.push('<td width="120" align="right">git:</td>');
-            htm.push('<td>'+'<input type="text" class="form-control" id="add_git" placeholder="git://github.com/sre/op.git" value="'+data[2]+'">'+'</td>');
-            htm.push('</tr>');
-
-            htm.push('<tr>');
-            htm.push('<td width="120" align="right">branch:</td>');
-            htm.push('<td>'+'<input type="text" class="form-control" id="add_branch" placeholder="python" value="'+data[3]+'">'+'</td>');
+            htm.push('<td width="120" align="right">project:</td>');
+            htm.push('<td>'+'<input type="text" readOnly="true" class="form-control" id="add_nproject" placeholder="api" value="'+data[2]+'">'+'</td>');
             htm.push('</tr>');
 
             htm.push('<tr>');
             htm.push('<td width="120" align="right">type:</td>');
-            htm.push('<td>'+'<input type="text" readOnly="true" class="form-control" id="add_type" placeholder="python" value="'+data[4]+'">'+'</td>');
+            htm.push('<td>'+'<input type="text" readOnly="true" class="form-control" id="add_type" placeholder="python" value="'+data[3]+'">'+'</td>');
             htm.push('</tr>');
 
             htm.push('<tr>');
             htm.push('<td width="120" align="right">port:</td>');
-            htm.push('<td>'+'<input type="text" class="form-control" id="add_port" placeholder="go port[8000-10000]  python port[3000-5000]" value="'+data[5]+'">'+'</td>');
+            htm.push('<td>'+'<input type="text" class="form-control" id="add_port" placeholder="go port[8000-10000]  python port[3000-5000]" value="'+data[4]+'">'+'</td>');
+            htm.push('</tr>');
+
+
+            htm.push('<tr>');
+            htm.push('<td width="120" align="right">git:</td>');
+            htm.push('<td>'+'<input type="text" class="form-control" id="add_git" placeholder="git://github.com/sre/op.git" value="'+data[5]+'">'+'</td>');
             htm.push('</tr>');
 
             htm.push('<tr>');
-            htm.push('<td width="120" align="right">make:</td>');
-            htm.push('<td>'+'<input type="text" class="form-control" id="add_make" placeholder="shell cmd1  && shell cmd2" value="'+data[6]+'">'+'</td>');
-            htm.push('</tr>');
-
-            if (data[7]=="yes"){
-                htm.push('<tr>');
-                htm.push('<td width="120" align="right">tag:</td>');
-                htm.push('<td>'+'<select class="form-control" id="add_istag"><option value="yes" selected = "selected">yes</option><option value="no">no</option></select>'+'</td>');
-                htm.push('</tr>');
-            }else{
-                htm.push('<tr>');
-                htm.push('<td width="120" align="right">tag:</td>');
-                htm.push('<td>'+'<select class="form-control" id="add_istag"><option value="yes">yes</option><option value="no" selected = "selected">no</option></select>'+'</td>');
-                htm.push('</tr>');
-            }
-
-            if (data[8]=="yes"){
-                htm.push('<tr>');
-                htm.push('<td width="120" align="right">isnginx:</td>');
-                htm.push('<td>'+'<select class="form-control" id="add_isnginx"><option value="yes" selected = "selected">yes</option><option value="no">no</option></select>'+'</td>');
-                htm.push('</tr>');
-            }else{
-                htm.push('<tr>');
-                htm.push('<td width="120" align="right">isnginx:</td>');
-                htm.push('<td>'+'<select class="form-control" id="add_isnginx"><option value="yes">yes</option><option value="no" selected = "selected">no</option></select>'+'</td>');
-                htm.push('</tr>');
-            }
-
-            if (data[10]=="yes"){
-                htm.push('<tr>');
-                htm.push('<td width="120" align="right">httpCheck:</td>');
-                htm.push('<td>'+'<select class="form-control" id="add_check"><option value="yes" selected = "selected">yes</option><option value="no">no</option></select>'+'</td>');
-                htm.push('</tr>');
-            }else{
-                htm.push('<tr>');
-                htm.push('<td width="120" align="right">httpCheck:</td>');
-                htm.push('<td>'+'<select class="form-control" id="add_check"><option value="yes">yes</option><option value="no" selected = "selected">no</option></select>'+'</td>');
-                htm.push('</tr>');
-            }
-
-            htm.push('<tr>');
-            htm.push('<td width="120" align="right">checkURL:</td>');
-            htm.push('<td>'+'<input type="text" class="form-control" id="add_checkurl" placeholder="/" value="'+data[11]+'">'+'</td>');
-            htm.push('</tr>');
-
-            htm.push('<tr>');
-            htm.push('<td width="120" align="right">statusCode:</td>');
-            htm.push('<td>'+'<input type="text" class="form-control" id="add_statuscode" placeholder="200" value="'+data[12]+'">'+'</td>');
+            htm.push('<td width="120" align="right">branch:</td>');
+            htm.push('<td>'+'<input type="text" class="form-control" id="add_branch" placeholder="python" value="'+data[6]+'">'+'</td>');
             htm.push('</tr>');
 
             htm.push('<tr>');
@@ -1552,12 +1402,84 @@ function push_edit_config_table(p){
             htm.push('<td colspan="2">'+'numprocs = $pnum$'+'</td>');
             htm.push('</tr>');
 
-            for(var i=0,len=data.length; i<len; i++){
+            htm.push('<tr>');
+            htm.push('<td width="120" align="right">'+data[0][0]+':</td>');
+            htm.push('<td><textarea id="'+data[0][0]+'" rows="5" cols="100"  >'+data[0][1]+'</textarea></td>');
+            htm.push('</tr>');
+
+            htm.push('<tr>');
+            htm.push('<td width="120" align="right">'+data[1][0]+':</td>');
+            htm.push('<td><textarea id="'+data[1][0]+'" rows="5" cols="100"  >'+data[1][1]+'</textarea></td>');
+            htm.push('</tr>');
+
+            htm.push('<tr>');
+            htm.push('<td width="120" align="right">'+data[2][0]+':</td>');
+            htm.push('<td><textarea id="'+data[2][0]+'" rows="5" cols="100"  >'+data[2][1]+'</textarea></td>');
+            htm.push('</tr>');
+
+            htm.push('<tr>');
+            htm.push('<td width="120" align="right">'+data[3][0]+':</td>');
+            htm.push('<td><textarea id="'+data[3][0]+'" rows="5" cols="100"  >'+data[3][1]+'</textarea></td>');
+            htm.push('</tr>');
+
+            htm.push('<tr>');
+            htm.push('<td width="120" align="right">'+data[4][0]+':</td>');
+            htm.push('<td><textarea id="'+data[4][0]+'" rows="5" cols="100"  >'+data[4][1]+'</textarea></td>');
+            htm.push('</tr>');
+
+            htm.push('<tr>');
+            htm.push('<td width="120" align="right">'+data[5][0]+':</td>');
+            htm.push('<td><textarea id="'+data[5][0]+'" rows="5" cols="100"  >'+data[5][1]+'</textarea></td>');
+            htm.push('</tr>');
+
+
+            if (data[6][1]=="yes"){
                 htm.push('<tr>');
-                htm.push('<td width="120" align="right">'+data[i][0]+':</td>');
-                htm.push('<td><textarea id="config'+i+'" rows="5" cols="100" >'+data[i][1]+'</textarea></td>');
+                htm.push('<td width="120" align="right">'+data[6][0]+':</td>');
+                htm.push('<td>'+'<select class="form-control" id="'+data[6][0]+'"><option value="yes" selected = "selected">yes</option><option value="no">no</option></select>'+'</td>');
+                htm.push('</tr>');
+            }else{
+                htm.push('<tr>');
+                htm.push('<td width="120" align="right">'+data[6][0]+':</td>');
+                htm.push('<td>'+'<select class="form-control" id="'+data[6][0]+'"><option value="yes">yes</option><option value="no" selected = "selected">no</option></select>'+'</td>');
                 htm.push('</tr>');
             }
+
+            if (data[7][1]=="yes"){
+                htm.push('<tr>');
+                htm.push('<td width="120" align="right">'+data[7][0]+':</td>');
+                htm.push('<td>'+'<select class="form-control" id="'+data[7][0]+'"><option value="yes" selected = "selected">yes</option><option value="no">no</option></select>'+'</td>');
+                htm.push('</tr>');
+            }else{
+                htm.push('<tr>');
+                htm.push('<td width="120" align="right">'+data[7][0]+':</td>');
+                htm.push('<td>'+'<select class="form-control" id="'+data[7][0]+'"><option value="yes">yes</option><option value="no" selected = "selected">no</option></select>'+'</td>');
+                htm.push('</tr>');
+            }
+
+
+            if (data[8][1]=="yes"){
+                htm.push('<tr>');
+                htm.push('<td width="120" align="right">'+data[8][0]+':</td>');
+                htm.push('<td>'+'<select class="form-control" id="'+data[8][0]+'"><option value="yes" selected = "selected">yes</option><option value="no">no</option></select>'+'</td>');
+                htm.push('</tr>');
+            }else{
+                htm.push('<tr>');
+                htm.push('<td width="120" align="right">'+data[8][0]+':</td>');
+                htm.push('<td>'+'<select class="form-control" id="'+data[8][0]+'"><option value="yes">yes</option><option value="no" selected = "selected">no</option></select>'+'</td>');
+                htm.push('</tr>');
+            }
+
+            htm.push('<tr>');
+            htm.push('<td width="120" align="right">'+data[9][0]+':</td>');
+            htm.push('<td>'+'<input type="text" class="form-control" id="'+data[9][0]+'" placeholder="/" value="'+data[9][1]+'">'+'</td>');
+            htm.push('</tr>');
+
+            htm.push('<tr>');
+            htm.push('<td width="120" align="right">'+data[10][0]+':</td>');
+            htm.push('<td>'+'<input type="text" class="form-control" id="'+data[10][0]+'" placeholder="200" value="'+data[10][1]+'">'+'</td>');
+            htm.push('</tr>');
+
 
             htm.push('<tr>');
             htm.push('<td></td>');
@@ -1639,17 +1561,18 @@ $("#lastlog").on('click', function(){
 $("body").on('click', '#update_config', function(){
     if (confirm('请确认配置信息')) {
 
-        var project = $('#ipt_project').val()
-        var config1 = $('#config0').val()
-        var config2 = $('#config1').val()
-        var config3 = $('#config2').val()
-        var config4 = $('#config3').val()
-        var config5 = $('#config4').val()
-        var config6 = $('#config5').val()
-        var config7 = $('#config6').val()
-        var config8 = $('#config7').val()
-        var config9 = $('#config8').val()
-        var config10 = $('#config9').val()
+        var project    = $('#ipt_project').val()
+        var make       = $('#make').val()
+        var supervisor = $('#supervisor').val()
+        var config     = $('#config').val()
+        var remarks    = $('#remarks').val()
+        var startcmd   = $('#startcmd').val()
+        var packfile   = $('#packfile').val()
+        var istag      = $('#istag').val()
+        var checkport  = $('#checkport').val()
+        var checkhttp  = $('#checkhttp').val()
+        var httpurl    = $('#httpurl').val()
+        var httpcode   = $('#httpcode').val()
 
         if(!project ){
             alert('project null');
@@ -1657,17 +1580,18 @@ $("body").on('click', '#update_config', function(){
         }
 
         var param = {
-            project: project,
-            config1: config1,
-            config2: config2,
-            config3: config3,
-            config4: config4,
-            config5: config5,
-            config6: config6,
-            config7: config7,
-            config8: config8,
-            config9: config9,
-            config10: config10,
+            project     : project,
+            make        : make,
+            supervisor  : supervisor,
+            config      : config,
+            remarks     : remarks,
+            startcmd    : startcmd,
+            packfile    : packfile,
+            istag       : istag,
+            checkport   : checkport,
+            checkhttp   : checkhttp,
+            httpurl     : httpurl,
+            httpcode    : httpcode
         }
 
         $.post('/update_config', param, function(data){

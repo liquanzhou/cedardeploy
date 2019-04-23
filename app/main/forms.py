@@ -50,10 +50,10 @@ def writefile(path, content):
 def hostInit(project, host, Type):
     if Type == 'java':
         shell_cmd = '''ssh -o StrictHostKeyChecking=no -o ConnectTimeout=2 %s@%s "cp -a %s/tomcat8_install_template %s/%s " ''' %(
-                       exec_user, host, host_path, host_path, project)
+                       exec_user, host, remote_host_path, remote_host_path, project)
     else:
-        shell_cmd = '''ssh -o StrictHostKeyChecking=no -o ConnectTimeout=2 %s@%s "mkdir -p %s %s %s %s /data/golang/supervisor " ''' %(
-                       exec_user, host, supervisor_log_path, host_path, go_host_path, jobs_host_path)
+        shell_cmd = '''ssh -o StrictHostKeyChecking=no -o ConnectTimeout=2 %s@%s "mkdir -p %s %s" ''' %(
+                       exec_user, host, supervisor_log_path, remote_host_path)
     Result = shellcmd(shell_cmd)
     if Result['status'] != 'ok':
         return Result['log']
@@ -65,7 +65,7 @@ def deployConfig(project, host, ones, ones1, ones2):
     try:
         if ones.type in supervisord_list:
             # supervisor
-            supervisor_conf = ones2.config3.replace('$ip$',host).replace('$pnum$',ones1.variable1).replace('$env$',ones1.variable6)
+            supervisor_conf = ones2.supervisor.replace('$ip$',host).replace('$pnum$',ones1.pnum).replace('$env$',ones1.env)
             supervisor_conf_path = '%s/%s_%s_supervisor.conf' %(project_path, project, host)
             remote_supervisor_conf_path = '%s@%s:%s/%s.conf' %(exec_user, host, supervisor_conf_dir, project)
             writefile(supervisor_conf_path, supervisor_conf)
@@ -78,33 +78,6 @@ def deployConfig(project, host, ones, ones1, ones2):
 
             shell_cmd = '''ssh -o StrictHostKeyChecking=no -o ConnectTimeout=2 %s@%s "supervisorctl reread;supervisorctl update" ''' %(
                            exec_user, host)
-            Result = shellcmd(shell_cmd)
-            if Result['status'] != 'ok':
-                raise Exception(Result['log'])
-
-        elif ones.type == 'java':
-            # tomcat server.xml
-            server_xml_path = '%s/%s_%s_server.xml' %(project_path, project, host)
-            remote_server_xml_path = '%s@%s:%s/%s/conf/server.xml' %(exec_user, host, host_path, project)
-            server_xml = ones2.config3.replace('$ip$', host)
-            writefile(server_xml_path, server_xml)
-
-            shell_cmd = '''scp -o StrictHostKeyChecking=no -o ConnectTimeout=2  %s  %s  > /dev/null  ''' %(
-                           server_xml_path, remote_server_xml_path)
-            Result = shellcmd(shell_cmd)
-            if Result['status'] != 'ok':
-                raise Exception(Result['log'])
-
-            # tomcat catalina.sh
-            catalina_sh_path = '%s/%s_%s_catalina.sh' %(project_path, project, host)
-            remote_catalina_sh_path = '%s@%s:%s/%s/bin/catalina.variable' %(exec_user, host, host_path, project)
-            catalina_sh = ones2.config2.replace('$jxmport$',ones1.variable1
-                                      ).replace('$config_dir$', ones2.config4
-                                      ).replace('$env$', ones.environment)
-            writefile(catalina_sh_path, catalina_sh)
-
-            shell_cmd = '''scp -o StrictHostKeyChecking=no -o ConnectTimeout=2  %s  %s  > /dev/null ''' %(
-                           catalina_sh_path, remote_catalina_sh_path)
             Result = shellcmd(shell_cmd)
             if Result['status'] != 'ok':
                 raise Exception(Result['log'])
