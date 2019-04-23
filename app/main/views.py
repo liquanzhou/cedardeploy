@@ -552,7 +552,7 @@ def add_project():
                               ).replace('$shutdownport$',        str(int(port)-75)  )
     
         configadd = project_config(  project_name = project_name, 
-                                     make         = 'sh deploy_make.sh',
+                                     make         = '',
                                      supervisor   = supervisor,
                                      config       = '',
                                      remarks      = 'remarks',
