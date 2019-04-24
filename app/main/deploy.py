@@ -46,22 +46,18 @@ def config_info(project):
     return ones[0]
 
 def gethostname(project):
-    print(project)
     sql = "SELECT `ip`,`hostname`,`pnum` FROM `serverinfo` WHERE project_name = '%s';" % (project)
     c.execute(sql)
     ones = c.fetchall()
     hostnameinfo = {}
     for i in ones:
-        print(i)
         hostnameinfo[i[0]] = [i[1], int(i[2])]
-    print(hostnameinfo)
     return hostnameinfo
 
 def getworkorder(project):
     sql = "SELECT `applicant`,`remarks` FROM `workorder`  WHERE status = 'wait' and project = '%s';" % (project)
     c.execute(sql)
     ones = c.fetchall()
-    print(ones)
     if ones:
         workorderinfo = {'status':'ok', 'applicant':ones[-1][0], 'remarks':ones[-1][1]}
     else:
@@ -195,7 +191,6 @@ class Deploy:
         self.wlogsql()
 
     def serviceStop(self):
-        print(self.hostnameinfo)
         pnum = self.hostnameinfo[self.host][1]
         for port in range(self.port, self.port + pnum):
             self.removeService(port)
@@ -203,11 +198,6 @@ class Deploy:
 
     def serviceRestart(self):
         pnum = self.hostnameinfo[self.host][1]
-        print(pnum)
-        print(type(pnum))
-        print(type(self.port))
-        print(self.port + pnum)
-
         for port in range(self.port, self.port + pnum):
             self.removeService(port)
             self.restart[self.Type](port)
@@ -215,7 +205,6 @@ class Deploy:
             self.http_check(port)
             self.autotest(port)
             self.increaseService(port)
-            #self.getloginfo(port)
 
     def serviceUpdate(self):
         self.rsyncCode[self.Type]()
@@ -259,7 +248,6 @@ class Deploy:
             sql = "update `serverinfo` set `commitid`='%s',`updatetime`='%s' \
                            where project_name='%s' and ip='%s';   " % (
                            self.commitid, self.tag, self.project, self.host)
-            print(sql)
             try:
                 c.execute(sql)
             except:
@@ -270,7 +258,6 @@ class Deploy:
         sql = "update `updateoperation` set `status`='%s',`tag`='%s',`commitid`='%s' \
                        where project_name='%s' and taskid='%s';  " % (
                        self.status, self.tag, self.commitid, self.project, self.taskid)
-        print(sql)
         try:
             c.execute(sql)
         except Exception as err:
@@ -291,7 +278,6 @@ class Deploy:
 
         headers = {'content-type': 'application/json'}
 
-
         if self.workorderinfo['status'] == 'ok':
             content = "%s  %s:  %s\n%s\n操作人: %s\n工单人: %s\ninfo: %s" %(
                        self.project, self.operation, self.status, HL, self.currentuser, 
@@ -300,24 +286,8 @@ class Deploy:
             content = "%s  %s:  %s\n%s\n操作人: %s" %(
                        self.project, self.operation, self.status, HL, self.currentuser)
 
-        data = {
-                "msgtype": "text",
-                "text": {
-                    "content": content
-                }
-            }
-
         if self.business in self.basicGlist:
-            Robot = self.businessRobot
-        else:
-            Robot = 'null'
-
-        if Robot != 'null':
-            try:
-                r = requests.post(url=Robot, data=json.dumps(data), headers=headers, timeout=2).json()
-            except Exception as err:
-                print('ERROR: notice dingding api error')
-                print(str(err))
+            self.dingding(self.businessRobot, content)
 
     def expansion_notice(self):
         if self.environment != 'online':
@@ -326,17 +296,8 @@ class Deploy:
         endtime = time.strftime('%Y-%m-%d %H:%M:%S')
         content = "%s\n%s: %s %s\nHost: %s\nReason: %s" %(
                    endtime, self.project, self.operation, self.status, self.hostlist, self.reason)
-        ExpansionHost = {
-            "msgtype": "text",
-            "text": {
-                "content": content
-            }
-        }
 
-        try:
-            requests.post(url=self.sreRobot, headers=headers, data=json.dumps(ExpansionHost))
-        except Exception as err:
-            self.addlog(str(err))
+        self.dingding(self.sreRobot, content)
 
 
     def getlastokstatus(self):
@@ -352,16 +313,6 @@ class Deploy:
             tag = ''
             commitid = ''
         return {'tag': tag, 'commitid': commitid}
-
-
-    def getloginfo(self, port = None):
-        if port is None:
-            port = self.port
-        print(self.loginfo)
-        if self.Type == 'golang':
-            shell_cmd = '''ssh -o StrictHostKeyChecking=no -o ConnectTimeout=2 %s@%s "tail -30 %s/%s.log " ''' %(
-                           self.exec_user, self.host, supervisor_log_path, self.project)
-            self.exec_shell(shell_cmd)
 
 
     def exec_shell(self, shell_cmd):
@@ -462,13 +413,12 @@ class Deploy:
             self.addlog(shell_cmd)
             self.exec_shell(shell_cmd)
 
-
-    def checkcommitid(self):
-
         shell_cmd = "cd %s/%s && git rev-parse HEAD" %(self.project_path, self.project)
         Result = self.exec_shell(shell_cmd)
         self.commitid = Result['log'].strip()[0:8]
 
+
+    def checkcommitid(self):
         laststatus   = self.getlastokstatus()
         lastcommitid = laststatus['commitid']
         lasttag      = laststatus['tag']
