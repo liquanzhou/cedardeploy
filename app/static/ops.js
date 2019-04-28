@@ -536,7 +536,7 @@ function pagelist(){
     $.getJSON('/pagelist',  function(data){
         var htm=['<ul class="nav nav-pills navbar-left" role="tablist">'];
         for(var i=0,len=data.length; i<len; i++){
-            htm.push('<li role="presentation"><a href="/'+data[i][0]+'">'+data[i][1]+'</a></li>');
+            htm.push('<li role="presentation"><a class="presentationLink" href="/'+data[i][0]+'">'+data[i][1]+'</a></li>');
         }
         htm.push('</ul>');
         $('#pagelist').html(htm.join(''));
@@ -549,6 +549,12 @@ function project_list(p){
 
     var selectgroup = $('#selectgroup').val()
     var functype = $('#leftDiv').attr('path')
+    $('.presentationLink').each(function(k, v) {
+        var $v = $(v)
+        var href = $v.attr('href')
+        var newHref = addQuery(href, 'group', selectgroup)
+        $v.attr('href', newHref)
+    })
     var param = {
         group: selectgroup,
         functype: functype
@@ -822,7 +828,7 @@ function host_list_table(p){
         var htm=['<table class="table table-hover">'];
         if (data!='' && data!=undefined && data!=null){
             if($('#leftDiv').attr('path') == "online"){
-                htm.push('<thead><tr><th>hostname</th><th>ip</th><th>pnum</th><th>status</th><th>checkTime</th><th>commitID</th><th>UpdateTime</th><th>stop</th></thead>');
+                htm.push('<thead><tr><th>hostname</th><th>ip</th><th>pnum</th><th>status</th><th>checkTime</th><th>commitID</th><th>Tag</th><th>stop</th></thead>');
                 for(var i=0,len=data.length; i<len; i++){
                     if(data[i][1] != "essExpansion"){
                         htm.push('<tr>');
@@ -844,7 +850,7 @@ function host_list_table(p){
                         }
                         htm.push('<td><div id="checkTime'+data[i][0].replace(/\./g,"-")+'" class="sidebar-menu">'+data[i][7]+'</div></td>');
                         htm.push('<td><div id="commitID'+data[i][0].replace(/\./g,"-")+'" class="sidebar-menu">'+data[i][8]+'</div></td>');
-                        htm.push('<td><div id="UpdateTime'+data[i][0].replace(/\./g,"-")+'" class="sidebar-menu">'+data[i][10]+'</div></td>');
+                        htm.push('<td><div id="Tag'+data[i][0].replace(/\./g,"-")+'" class="sidebar-menu">'+data[i][10]+'</div></td>');
                         htm.push('<td>'+'<a href="javascript:;" onclick=stop_submit("'+data[i][0]+'");>stop</a>'+'</td>');
                         htm.push('</tr>');
                     }
@@ -895,7 +901,7 @@ function host_list_status(p){
                 }
                 $('#checkTime'+data[i][0].replace(/\./g,"-")).html(data[i][7]);
                 $('#commitID'+data[i][0].replace(/\./g,"-")).html(data[i][8]);
-                $('#UpdateTime'+data[i][0].replace(/\./g,"-")).html(data[i][10]);
+                $('#Tag'+data[i][0].replace(/\./g,"-")).html(data[i][10]);
             }
 
         }
@@ -930,8 +936,31 @@ function push_edit_host_table(p){
 };
 
 
+function addQuery(href, key, value) {
+    var hrefArr = href.split('?')
+    var url = hrefArr[0]
+    var search = hrefArr[1] || ''
+    var newSearchArr = []
+    search.split('&').forEach(function(param) {
+        var paramArr = param.split('=')
+        var k = paramArr[0]
+        if(k !== key) {
+            newSearchArr.push(param)
+        }
+    })
+    newSearchArr.push(key + '=' + value)
+    return url + '?' + newSearchArr.filter(s => s !== '').join('&')
+}
+
+
 $("body").on('click', '.host_list', function(){
     var p = $(this).attr('data-project')
+    $('.presentationLink').each(function(k, v) {
+        var $v = $(v)
+        var href = $v.attr('href')
+        var newHref = addQuery(href, 'project', p)
+        $v.attr('href', newHref)
+    })
     host_list_push(p)
 });
 
@@ -990,6 +1019,13 @@ $("body").on('click', '.host_list_admin', function(){
     $($(this).find('p')[0]).css({"backgroundColor":"#C1FFC1"});
 
     var p = $(this).attr('data-project')
+
+    $('.presentationLink').each(function(k, v) {
+        var $v = $(v)
+        var href = $v.attr('href')
+        var newHref = addQuery(href, 'project', p)
+        $v.attr('href', newHref)
+    })
 
     host_list_table(p)
 
@@ -1150,6 +1186,13 @@ $("body").on('click', '.online_log_time', function(){
     $($(this).find('p')[0]).css({"backgroundColor":"#C1FFC1"});
 
     var p = $(this).attr('data-project')
+
+    $('.presentationLink').each(function(k, v) {
+        var $v = $(v)
+        var href = $v.attr('href')
+        var newHref = addQuery(href, 'project', p)
+        $v.attr('href', newHref)
+    })
 
     var param={ project:p };
     $.getJSON('/online_log_time', param, function(data){

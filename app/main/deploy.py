@@ -126,8 +126,8 @@ class Deploy:
 
 
         self.pkl_file = '%s/deploy.%s.lock' %(lock_path, project)
-        self.loginfo = 'user: %s\nhostlist: %s\noperation: %s\nproject: %s\ntag: %s\ntaskid: %s\n' %(
-                        self.currentuser, self.hostlist, self.operation, self.project, self.tag, self.taskid)
+        self.loginfo = 'user: %s\nhostlist: %s\noperation: %s\nproject: %s\ntaskid: %s\n' %(
+                        self.currentuser, self.hostlist, self.operation, self.project, self.taskid)
 
 
         self.makeFun      = {   "serviceStop":         self.notexec,
