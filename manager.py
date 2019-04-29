@@ -7,9 +7,10 @@
 # python manager.py db migrate
 # python manager.py db upgrade
 # python manager.py shell
-# u = User(email='xuesong@163.com',username='xuesong',password='xuesong')
-# db.session.add(u)
-# db.session.commit()
+# with app.app_context():
+#     u = User(email='admin@163.com',username='admin',password='admin')
+#     db.session.add(u)
+#     db.session.commit()
 
 from app import create_app, db
 from app.models import User
