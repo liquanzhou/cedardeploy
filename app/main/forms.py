@@ -47,6 +47,12 @@ def writefile(path, content):
     f.close()
 
 
+def getHostname(host):
+    shell_cmd = '''ssh -o StrictHostKeyChecking=no -o ConnectTimeout=2 %s@%s "hostname" ''' %(exec_user, host)
+    Result = shellcmd(shell_cmd)
+    return Result
+
+
 def hostInit(project, host, Type):
     if Type == 'java':
         shell_cmd = '''ssh -o StrictHostKeyChecking=no -o ConnectTimeout=2 %s@%s "cp -a %s/tomcat8_install_template %s/%s " ''' %(

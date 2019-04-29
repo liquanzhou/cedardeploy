@@ -68,6 +68,13 @@ class userservicegroup(db.Model):
         self.servicegroup = servicegroup
         self.permissions = permissions
 
+class servicegroup(db.Model):
+    __tablename__ = 'servicegroup'
+    id = db.Column(db.Integer, primary_key=True)
+    servicegroup = db.Column(db.String(64))
+    def __init__(self, servicegroup):
+        self.servicegroup = servicegroup
+
 class projectinfo(db.Model):
     __tablename__ = 'projectinfo'
     project_name = db.Column(db.String(64), primary_key=True)

@@ -205,6 +205,37 @@ def clean_git_cache():
 
     return json.dumps([status])
 
+@main.route("/add_group", methods=["GET", "POST"])
+@login_required
+def add_group():
+    R = {'status':'ok', 'log':'', 'data':''}
+    try:
+        addgroupname = request.form.get("addgroupname","null").strip().split(' ')[0]
+        if addgroupname == '' or addgroupname == 'null':
+            raise Exception('ERROR: add groupname null')
+        u = servicegroup(servicegroup=addgroupname)
+        db.session.add(u)
+        db.session.commit()
+    except Exception as err:
+        R['log'] = str(err)
+        R['status'] = 'fail'
+    return json.dumps(R)
+
+
+@main.route("/del_group", methods=["POST"])
+@login_required
+def del_group():
+    R = {'status':'ok', 'log':'', 'data':''}
+    try:
+        groupname = request.form.get('selectgroup', 'null')
+        if groupname == 'null':
+            raise Exception('ERROR: servicegroup null')
+        servicegroup.query.filter(servicegroup.servicegroup == groupname).delete()
+    except Exception as err:
+        R['log'] = str(err)
+        R['status'] = 'fail'
+    return json.dumps(R)
+
 
 @main.route("/adduserservicegroup", methods=["GET", "POST"])
 @login_required
@@ -257,6 +288,23 @@ def group_list():
             ones = userservicegroup.query.filter(userservicegroup.username == user ).all()
     except:
         return json.dumps(['sql error'])
+    grouplist = []
+    for i in ones:
+        if i.servicegroup != 'null':
+            grouplist.append(i.servicegroup)
+    grouplist = sorted(list(set(grouplist)))
+    return json.dumps(grouplist)
+
+@main.route("/group_list_all", methods=["GET", "POST"])
+@login_required
+def group_list_all():
+    user = current_user.username
+    if user in adminuser:
+        try:
+            ones = servicegroup.query.all()
+        except:
+            return json.dumps(['sql error or no authority'])
+
     grouplist = []
     for i in ones:
         if i.servicegroup != 'null':
@@ -582,13 +630,20 @@ def add_host():
         host         = request.form.get('host',         "null").strip()
         pnum         = request.form.get('pnum',         "1"   ).strip()
         env          = request.form.get('env',          ""    ).strip()
-        if project == "null" or hostname == "null" or host == "null" or project == "" or hostname == "" or host == "":
+        if project == "null" or host == "null" or project == "" or host == "":
             raise Exception('ERROR: parameter error')
         ones1 = serverinfo.query.filter(serverinfo.project_name == project, serverinfo.ip == host).all()
         if len(ones1) != 0:
             raise Exception('ERROR: host exist.')
         if pnum == '':
             pnum = '1'
+
+        if hostname == '' or hostname == 'null':
+            Result = getHostname(host)
+            if Result['status'] == 'ok':
+                hostname = Result['log'].strip().split('.')[0]
+            else:
+                raise Exception('ERROR: get hostname error')
     
         newserver = serverinfo(project, hostname, host, pnum, env, 'checkstatus', 'checktime', 'commitid', 'updatestatus', 'updatetime')
         db.session.add(newserver)

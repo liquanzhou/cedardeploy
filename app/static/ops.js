@@ -282,6 +282,34 @@ $("body").on('click', '#add_host', function(){
 });
 
 
+$("body").on('click', '#add_group', function(){
+    if (confirm('确认提交？')) {
+        var addgroupname = $('#addgroupname').val()
+        var param = {
+            addgroupname: addgroupname,
+        }
+        $.post('/add_group', param, function(data){
+            group_list_all()
+            alert(data.status+"  "+data.log);
+        }, 'json');
+    };
+});
+
+
+$("body").on('click', '#del_group', function(){
+    if (confirm('确认删除服务组？')) {
+        var selectgroup = $('#selectgroup').val()
+        var param = {
+            selectgroup: selectgroup,
+        }
+        $.post('/del_group', param, function(data){
+            group_list_all()
+            alert(data.status+"  "+data.log);
+        }, 'json');
+    };
+});
+
+
 $("body").on('click', '#add_servergroup', function(){
     if (confirm('确认提交？')) {
         var username = $('#current_user').val()
@@ -619,6 +647,16 @@ function group_list(){
     })
 };
 
+function group_list_all(){
+    $.getJSON('/group_list_all', function(data){
+        var htm=['<select class="form-control" id="selectgroup">'];
+        for(var i=0,len=data.length; i<len; i++){
+            htm.push('<option value="'+data[i]+'">'+data[i]+'</option>');
+        }
+        htm.push('</select>');
+        $('#groupnamediv').html(htm.join(''));
+    })
+};
 
 function user_list(){
     $.getJSON('/user_list', function(data){
@@ -636,24 +674,23 @@ function user_list(){
 $("body").on('click', '.userlist', function(){
     var username = $(this).attr('username')
     userservicegrouplist(username)
+    servergroup_list_all()
 });
 
 
 function userservicegrouplist(username){
-
     var param = {
         user: username
     }
 
     $.getJSON('/userservicegrouplist', param, function(data){
-
         var htm=['<table class="table table-hover">'];
         htm.push('<thead><tr><th>username</th><th>server group</th><th>permissions</th><th>operation</th></thead>');
         htm.push('<tr>');
         htm.push('<td>'+'<input type="text" readonly="true" id="current_user" class="form-control"  value="'+username+'">'+'</td>');
-        htm.push('<td>'+'<input type="text" id="add_server_group" class="form-control"  value="">'+'</td>');
+        htm.push('<td>'+'<div id="usergroupnamediv" class="sidebar-menu"></div>'+'</td>');
         htm.push('<td>'+'<select class="form-control" id="add_permissions"><option value="developer"  selected="selected">developer</option><option value="config">config</option><option value="online">online</option></select>'+'</td>');
-        htm.push('<td>'+'<button id="add_servergroup" class="btn btn-small btn-success">添加组</button>'+'</td>');
+        htm.push('<td>'+'<button id="add_servergroup" class="btn btn-small btn-success">添加组权限</button>'+'</td>');
         htm.push('</tr>');
         htm.push('<tr>');
         htm.push('<td></td>');
@@ -666,7 +703,7 @@ function userservicegrouplist(username){
             htm.push('<td>'+'<input type="text" readonly="true" class="form-control"  value="'+username+'">'+'</td>');
             htm.push('<td>'+'<input type="text" readonly="true" class="form-control"  value="'+data[i][0]+'">'+'</td>');
             htm.push('<td>'+'<input type="text" readonly="true" class="form-control"  value="'+data[i][1]+'">'+'</td>');
-            htm.push('<td>'+'<button id="delete_servergroup" username="'+username+'" servergroup="'+data[i][0]+'" class="btn btn-small btn-danger">删除组</button>'+'</td>');
+            htm.push('<td>'+'<button id="delete_servergroup" username="'+username+'" servergroup="'+data[i][0]+'" class="btn btn-small btn-danger">删除组权限</button>'+'</td>');
             htm.push('</tr>');
         }
 
@@ -680,6 +717,16 @@ function userservicegrouplist(username){
 }
 
 
+function servergroup_list_all(){
+    $.getJSON('/group_list_all', function(data){
+        var htm=['<select class="form-control" id="add_server_group">'];
+        for(var i=0,len=data.length; i<len; i++){
+            htm.push('<option value="'+data[i]+'">'+data[i]+'</option>');
+        }
+        htm.push('</select>');
+        $('#usergroupnamediv').html(htm.join(''));
+    })
+};
 
 function project_info(p){
     var status = $('#project_div').attr('status')

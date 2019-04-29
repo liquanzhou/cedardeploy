@@ -4,6 +4,7 @@
 
 {% block loading %}
     <script type="text/javascript"> user_list(); </script>
+    <script type="text/javascript"> group_list_all(); </script>
 {% endblock %}
 
 
@@ -23,11 +24,20 @@
             <tr>
                 <td><input type="text" id="addusername" class="form-control"  value=""></td>
                 <td><input type="text" id="addpassword" class="form-control"  value=""></td>
-                <td><button id="add_user" class="btn btn-small btn-success">添用户</button></td>
+                <td><button id="add_user" class="btn btn-small btn-success">添加用户</button></td>
             </tr>
         </table>
     </div>
-    <div id="add_servergroup" class="sidebar-menu">
+    <div class="sidebar-menu">
+        <table class="table table-hover">
+            <thead><tr><th>addgroupname</th><th>添加服务组</th><th>delgroupname</th><th>删除服务组</th></thead>
+            <tr>
+                <td><input type="text" id="addgroupname" class="form-control"  value=""></td>
+                <td><button id="add_group" class="btn btn-small btn-success">添服务加组</button></td>
+                <td><div id="groupnamediv" class="sidebar-menu"><input type="text" id="selectgroup" class="form-control" value=""></div></td>
+                <td><button id="del_group" class="btn btn-small btn-danger">删服务除组</button></td>
+            </tr>
+        </table>
     </div>
     <div id="servergroup_list" class="sidebar-menu">
     </div>
