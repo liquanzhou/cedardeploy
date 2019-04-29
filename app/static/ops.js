@@ -323,6 +323,7 @@ $("body").on('click', '#add_servergroup', function(){
         $.post('/adduserservicegroup', param, function(data){
             alert(data.status+"  "+data.log);
             userservicegrouplist(username);
+            servergroup_list_all()
         }, 'json');
     };
 });
@@ -712,7 +713,7 @@ function userservicegrouplist(username){
         htm.push('</tr>');
 
         htm.push('</table>');
-        $('#servergroup_list').html(htm.join(''));
+        $('#update_user').html(htm.join(''));
     })
 }
 

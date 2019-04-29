@@ -231,6 +231,7 @@ def del_group():
         if groupname == 'null':
             raise Exception('ERROR: servicegroup null')
         servicegroup.query.filter(servicegroup.servicegroup == groupname).delete()
+        userservicegroup.query.filter(userservicegroup.servicegroup == groupname).delete()
     except Exception as err:
         R['log'] = str(err)
         R['status'] = 'fail'
