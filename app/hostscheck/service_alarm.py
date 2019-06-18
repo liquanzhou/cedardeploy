@@ -92,7 +92,7 @@ cPickle.dump(pd, pkl_file)
 pkl_file.close()
 
 
-checklogfile = '%s/hostscheck.log' %(log_path)
+checklogfile = '/data/log/service_check.log'
 logtime = 60*5
 try:
     ct = os.path.getmtime(checklogfile)
