@@ -169,28 +169,43 @@ for threadID in range(100):
     threadID += 1
 
 
+try:
+    iplistall = requests.get(iplistallurl, timeout=2).json()
+except Exception as err:
+    time.sleep(10)
+    print('ERROR: iplistall URL GET fail')
+    continue
+queueLock.acquire()
+try:
+    for ip in iplistall:
+        if ip not in notchecklist:
+            workQueue.put(ip, False)
+except Exception as err:
+    print(str(err))
+queueLock.release()
+
+
+
+time.sleep(1)
 while True:
+    queueLock.acquire()
+    print 'work q %s' % workQueue.qsize()
     if workQueue.empty():
-        try:
-            iplistall = requests.get(iplistallurl, timeout=2).json()
-        except Exception as err:
-            time.sleep(10)
-            print('ERROR: iplistall URL GET fail')
-            continue
-        queueLock.acquire()
-        try:
-            for ip in iplistall:
-                if ip not in notchecklist:
-                    workQueue.put(ip, False)
-                    if workQueue.full():
-                        print('ERROR: check host IP Queue %s full. clean IP Queue all' %(workQueue.qsize() ))
-                        workQueue.queue.clear()
-        except Exception as err:
-            print(str(err))
-        queueLock.release()
-        time.sleep(15)
+        break
     else:
-        time.sleep(3)
+        queueLock.release()
+        time.sleep(1)
+
+while True:
+    statusqueueLock.acquire()
+    print 'status q %s' % statusQueue.qsize()
+    if statusQueue.empty():
+        print 'exit'
+        os._exit(0)
+    else:
+        statusqueueLock.release()
+        time.sleep(1)
+
 
 
 exitFlag = 1

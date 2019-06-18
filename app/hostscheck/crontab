@@ -1,0 +1,8 @@
+# deploy hosts check
+* * * * * cd /app/deploy/app/hostscheck/;python service_check.py >> /data/log/service_check.log 2>&1
+# deploy service check alarm
+* * * * * cd /app/deploy/app/hostscheck/;python service_alarm.py >> /data/log/service_alarm.log 2>&1
+# deploy consul check
+* * * * * cd /app/deploy/app/hostscheck/;python consul_check.py >> /data/log/consul_check.log 2>&1
+# deploy consul alarm
+* * * * * cd /app/deploy/app/hostscheck/;python consul_alarm.py >> /data/log/consul_alarm.log 2>&1

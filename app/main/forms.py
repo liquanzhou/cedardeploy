@@ -72,7 +72,7 @@ def deployConfig(project, host, ones, ones1, ones2):
         if ones.type in supervisord_list:
             # supervisor
             supervisor_conf = ones2.supervisor.replace('$ip$',host).replace('$pnum$',ones1.pnum).replace('$env$',ones1.env)
-            supervisor_conf_path = '%s/%s_%s_supervisor.conf' %(project_path, project, host)
+            supervisor_conf_path = '/tmp/%s_%s_supervisor.conf' %(project, host)
             remote_supervisor_conf_path = '%s@%s:%s/%s.conf' %(exec_user, host, supervisor_conf_dir, project)
             writefile(supervisor_conf_path, supervisor_conf)
 
