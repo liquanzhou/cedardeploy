@@ -551,13 +551,15 @@ def add_project():
     try:
         business = request.form.get('business', "null").strip()
         environment = request.form.get('environment', "null").strip()
-        project = request.form.get('project', "null").strip()
+        project = request.form.get('project', "null").strip().lower()
         program_type = request.form.get('type', "null").strip()
         port = str(request.form.get('port', "0")).strip()
         git = request.form.get('git', "null").strip()
         branch = request.form.get('branch', "null").strip()
         if not port:
             port = '0'
+        if post.isdigit():
+            return json.dumps({'status':'parameter error. port Not a Number'})
     
         if project == "null" or environment == "null" or branch == "null" or program_type == "null" or git == "null":
             raise Exception('ERROR: parameter error')
