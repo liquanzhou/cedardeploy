@@ -109,9 +109,10 @@ class Deploy:
         self.httpcode    = cinfo[11]
 
 
-        self.host     = 'Deploy'
-        self.status   = 'ok'
-        self.commitid = ''
+        self.host      = 'Deploy'
+        self.host_name = 'Deploy'
+        self.status    = 'ok'
+        self.commitid  = ''
 
         self.exec_user      = exec_user
         self.project_path   = project_path
@@ -182,12 +183,20 @@ class Deploy:
 
 
     def makeOperation(self):
+        rtime = time.strftime('%Y%m%d_%H%M%S')
+        self.addlog('Deploy System Compile Start Time: %s\n' % rtime)
         self.makeFun[self.operation]()
+        rtime = time.strftime('%Y%m%d_%H%M%S')
+        self.addlog('\nDeploy System Compile Done Time: %s' % rtime)
         self.wlogsql()
 
     def hostOperation(self):
+        rtime = time.strftime('%Y%m%d_%H%M%S')
+        self.addlog('%s Deploy Start Time: %s\n' % (self.host_name, rtime))
         self.remoteFun[self.operation]()
         self.updateHostCommit()
+        rtime = time.strftime('%Y%m%d_%H%M%S')
+        self.addlog('\n%s Deploy Done Time: %s' % (self.host_name, rtime))
         self.wlogsql()
 
     def serviceStop(self):
@@ -199,11 +208,16 @@ class Deploy:
     def serviceRestart(self):
         pnum = self.hostnameinfo[self.host][1]
         for port in range(self.port, self.port + pnum):
+            self.addlog('\n---------------------  Del Service Start ---------------------')
             self.removeService(port)
+            self.addlog('\n---------------------   Restart Service  ---------------------')
             self.restart[self.Type](port)
+            self.addlog('\n---------------------    Check Start     ---------------------')
             self.check_status(port)
             self.http_check(port)
+            self.addlog('\n---------------------   Autotest Start   ---------------------')
             self.autotest(port)
+            self.addlog('\n---------------------  Reg Service Start ---------------------')
             self.increaseService(port)
 
     def serviceUpdate(self):
@@ -219,21 +233,21 @@ class Deploy:
 
     def currenthost(self, host):
         self.host = host
+        try:
+            self.host_name = self.hostnameinfo[self.host][0]
+        except:
+            self.host_name = self.host
 
     def addlog(self, newlog):
         self.loginfo = '%s\n%s' %(self.loginfo, newlog)
 
     def wlogsql(self):
-        try:
-            host_name = self.hostnameinfo[self.host][0]
-        except:
-            host_name = self.host
 
         rtime = time.strftime('%Y%m%d_%H%M%S')
         loginfo = self.loginfo.replace("'","\'\'")
         sql = "INSERT INTO `updatelog` (`taskid`,`project_name`,`host`,`tag`,`rtime`,`status`,`loginfo`)  \
                       VALUES('%s', '%s', '%s', '%s', '%s', '%s', '%s'); " % (
-                      self.taskid, self.project, host_name, self.tag, rtime, self.status, loginfo)
+                      self.taskid, self.project, self.host_name, self.tag, rtime, self.status, loginfo)
         print(sql)
         try:
             c.execute(sql)
@@ -271,10 +285,10 @@ class Deploy:
         HL = 'hostlist:'
         for HOST in self.hostlist.split(','):
             try:
-                host_name = self.hostnameinfo[HOST][0]
+                hostname = self.hostnameinfo[HOST][0]
             except:
-                host_name = HOST
-            HL = HL + '  ' + host_name
+                hostname = HOST
+            HL = HL + '  ' + hostname
 
         headers = {'content-type': 'application/json'}
 
@@ -322,7 +336,8 @@ class Deploy:
         return_status = s.returncode
         logs = '%s\n%s' % (newlog.strip(), stderr.strip())
         if return_status == 0:
-            self.addlog(logs)
+            if logs.strip() != '':
+                self.addlog(logs.strip())
             return {'status':'ok', 'log':newlog}
         else:
             self.faildone(logs)
@@ -591,14 +606,14 @@ class Deploy:
 
 
     def restartSupervisor(self, port = None):
-        shell_cmd = '''ssh -o StrictHostKeyChecking=no -o ConnectTimeout=2 %s@%s " supervisorctl restart %s: " 
-                    ''' %(self.exec_user, self.host, self.project)
+        shell_cmd = '''ssh -o StrictHostKeyChecking=no -o ConnectTimeout=2 %s@%s "supervisorctl stop %s: ;supervisorctl update;supervisorctl start %s:" 
+                    ''' %(self.exec_user, self.host, self.project, self.project)
         self.exec_shell(shell_cmd)
     def restartSupervisorPort(self, port = None):
         if port is None:
             port = self.port
-        shell_cmd = '''ssh -o StrictHostKeyChecking=no -o ConnectTimeout=2 %s@%s " supervisorctl restart %s:%s " 
-                    ''' %(self.exec_user, self.host, self.project, port)
+        shell_cmd = '''ssh -o StrictHostKeyChecking=no -o ConnectTimeout=2 %s@%s "supervisorctl stop %s:%s ;supervisorctl update;supervisorctl start %s:%s" 
+                    ''' %(self.exec_user, self.host, self.project, port, self.project, port)
         self.exec_shell(shell_cmd)
     def restartJava(self, port = None):
         shell_cmd = '''ssh -o StrictHostKeyChecking=no -o ConnectTimeout=2 %s@%s "%s/%s/bin/catalina.sh stop 30 -force; \

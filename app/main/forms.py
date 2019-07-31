@@ -82,7 +82,7 @@ def deployConfig(project, host, ones, ones1, ones2):
             if Result['status'] != 'ok':
                 raise Exception(Result['log'])
 
-            shell_cmd = '''ssh -o StrictHostKeyChecking=no -o ConnectTimeout=2 %s@%s "supervisorctl reread;supervisorctl update" ''' %(
+            shell_cmd = '''ssh -o StrictHostKeyChecking=no -o ConnectTimeout=2 %s@%s "supervisorctl reread" ''' %(
                            exec_user, host)
             Result = shellcmd(shell_cmd)
             if Result['status'] != 'ok':

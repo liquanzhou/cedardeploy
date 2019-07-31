@@ -422,7 +422,7 @@ $("body").on('click', '#del_host', function(){
 $("body").on('click', '#deploy_config', function(){
     var deploy_config_host = $(this).attr('host')
     var deploy_config_project = $(this).attr('project')
-    if (confirm('警告: 配置文件改动会重启服务. 请确认!!!  '+deploy_config_host)) {
+    if (confirm('警告: supervisor配置文件改动,更新或重启生效  '+deploy_config_host)) {
         var param = {
             host:    deploy_config_host,
             project: deploy_config_project,
@@ -600,13 +600,13 @@ function project_list(p){
             for(var i=0,len=h.length; i<len; i++){
 
                 if(functype == "online"){
-                    htm.push('<li ><a class="host_list" style="cursor:pointer;" data-project="'+h[i]+'"><i class="icon-user"></i>');
+                    htm.push('<li ><a id="'+h[i]+'" class="host_list" style="cursor:pointer;" data-project="'+h[i]+'"><i class="icon-user"></i>');
                 }
                 if(functype == "project_admin"){
-                    htm.push('<li ><a class="host_list_admin" style="cursor:pointer;" data-project="'+h[i]+'"><i class="icon-user"></i>');
+                    htm.push('<li ><a id="'+h[i]+'" class="host_list_admin" style="cursor:pointer;" data-project="'+h[i]+'"><i class="icon-user"></i>');
                 }
                 if(functype == "online_log"){
-                    htm.push('<li ><a class="online_log_time" style="cursor:pointer;" data-project="'+h[i]+'"><i class="icon-user"></i>');
+                    htm.push('<li ><a id="'+h[i]+'" class="online_log_time" style="cursor:pointer;" data-project="'+h[i]+'"><i class="icon-user"></i>');
                 }
                 htm.push('<p class="text-success">'+h[i]+'</p>');
                 htm.push('</a></li>');
@@ -617,13 +617,26 @@ function project_list(p){
         $('#project_div').attr('status','close');
 
         if (p != undefined ) {
-            host_list_push(p);
+            if(functype == "online"){
+                host_list_push(p);
+            }
+            if(functype == "project_admin"){
+                console.log('project_admin');
+                $('p').css('background','');
+                $($('[data-project="'+p+'"]').find('p')[0]).css({"backgroundColor":"#C1FFC1"});
+            }
         }
-
+        jump()
     });
 };
 
-
+function jump(){
+    var id = parseQuery().project
+    if(id){
+        var el = $('#' + id)[0]
+        el.scrollIntoView({behavior: 'smooth'})
+    }
+};
 
 function group_list(){
 
@@ -771,11 +784,6 @@ function project_info(p){
             htm.push('<tr>');
             htm.push('<td width="120" align="right">branch:</td>');
             htm.push('<td>'+data[6]+'</td>');
-            htm.push('</tr>');
-
-            htm.push('<tr>');
-            htm.push('<td></td>');
-            htm.push('<td><button id="clean_git_cache" class="btn btn-small btn-danger">清除git缓存</button></td>');
             htm.push('</tr>');
 
             htm.push('</table>');
@@ -984,6 +992,18 @@ function push_edit_host_table(p){
 };
 
 
+function parseQuery(searchStr) {
+    var search = searchStr || location.search.slice(1)
+    var searchObj = {}
+    search.split('&').forEach(function(param) {
+        var paramArr = param.split('=')
+        var k = paramArr[0]
+        var v = paramArr[1]
+        searchObj[k] = v
+    })
+    return searchObj
+}
+
 function addQuery(href, key, value) {
     var hrefArr = href.split('?')
     var url = hrefArr[0]
@@ -1029,10 +1049,10 @@ function host_list_push(p){
     var htm1=['<input type="hidden" name="project" id="ipt_project" value="'+p+'" />'];
     $('#select_project').html(htm1.join(''));
 
-    var htm3=['<a href="javascript:;" class="project_info_table" status="close" onclick=\'project_info("'+p+'");\'>项目信息</a>'];
+    var htm3=['<a href="javascript:;" class="project_info_table" status="close" onclick=\'project_info("'+p+'");\'>项目信息:    '+p+'</a>'];
     $('#project_button').html(htm3.join(''));
 
-    var htm4=['<a href="javascript:;" class="config_info_table" status="close" onclick=\'config_info("'+p+'");\'>配置信息</a>'];
+    var htm4=['<a href="javascript:;" class="config_info_table" status="close" onclick=\'config_info("'+p+'");\'>配置信息:    '+p+'</a>'];
     $('#config_button').html(htm4.join(''));
 
     if(p.split("_",1) == "online"){
@@ -1057,7 +1077,7 @@ function host_list_push(p){
     if(timeout1){clearInterval(timeout1)};
         timeout1 = setInterval(function(){
             host_list_status(p);
-    },4000);
+    },10000);
 
 }
 
@@ -1129,14 +1149,14 @@ function next(i, hostLen){
         }
 
         var htm=['<table class="table table-bordered">'];
-        htm.push('<tr><th>host</th><th>完成时间</th><th>状态</th><th>执行结果</th></tr>');
+        htm.push('<tr><th>host</th><th>状态</th><th>执行过程</th></tr>');
         for(var i=0,len=data.length; i<len; i++){
             htm.push('<tr>');
-            htm.push('<td>'+data[i][0]+'</td>');
-            htm.push('<td>'+data[i][1]+'</td>');
             if(data[i][2] == 'ok' ){
+               htm.push('<td class="success">'+data[i][0]+'</td>');
                htm.push('<td class="success">'+data[i][2]+'</td>');
             }else{
+               htm.push('<td class="danger">'+data[i][0]+'</td>');
                htm.push('<td class="danger">'+data[i][2]+'</td>');
                $('#ProgressBarDiv').html(ProgressBarDanger);
                clearInterval(timeout);
@@ -1295,14 +1315,14 @@ function online_log_info(id){
     var param={ taskid:id };
     $.getJSON('/cmdreturns', param,  function(data){
         var htm=['<table class="table table-bordered">'];
-        htm.push('<tr><th>host</th><th>完成时间</th><th>状态</th><th>执行结果</th></tr>');
+        htm.push('<tr><th>host</th><th>状态</th><th>执行过程</th></tr>');
         for(var i=0,len=data.length; i<len; i++){
             htm.push('<tr>');
-            htm.push('<td>'+data[i][0]+'</td>');
-            htm.push('<td>'+data[i][1]+'</td>');
             if(data[i][2] == 'ok' ){
+               htm.push('<td class="success">'+data[i][0]+'</td>');
                htm.push('<td class="success">'+data[i][2]+'</td>');
             }else{
+               htm.push('<td class="danger">'+data[i][0]+'</td>');
                htm.push('<td class="danger">'+data[i][2]+'</td>');
             }
             htm.push('<td><textarea rows="30" cols="80" readonly="readonly">'+data[i][3]+'</textarea></td>');
@@ -1621,31 +1641,48 @@ function current_tag(p){
 
 $("#lastlog").on('click', function(){
     var  p = $('#ipt_project').val()
-    if (p != undefined){
-        var param={ project:p };
+    if (p == undefined){
+        alert('project_name null');
+    }
+    var param={ project:p };
+    $.getJSON('/lock_check', param, function(lockdata){
+        if(lockdata['status'] == "ok"){
+            var percentage=100;
+        }else{
+            var percentage=50;
+        }
+        var ProgressBar='<div class="progress-bar progress-bar-success progress-bar-striped" role="progressbar" aria-valuenow="'+percentage+'" aria-valuemin="0" aria-valuemax="100" style="width: '+percentage+'%">'+percentage+'%</div>';
+        var ProgressBarDanger='<div class="progress-bar progress-bar-danger progress-bar-striped" role="progressbar" aria-valuenow="'+percentage+'" aria-valuemin="0" aria-valuemax="100" style="width: '+percentage+'%">'+percentage+'%</div>';
+
         $.getJSON('/lastlog', param,  function(data){
             var htm=['<table class="table table-bordered">'];
-            htm.push('<tr><th>host</th><th>完成时间</th><th>状态</th><th>执行结果</th></tr>');
+            htm.push('<tr><th>host</th><th>状态</th><th>执行过程</th></tr>');
+            var status=''
             for(var i=0,len=data.length; i<len; i++){
                 htm.push('<tr>');
-                htm.push('<td>'+data[i][0]+'</td>');
-                htm.push('<td>'+data[i][1]+'</td>');
                 if(data[i][2] == 'fail' ){
+                   var status=data[i][2]
+                   htm.push('<td class="danger">'+data[i][0]+'</td>');
                    htm.push('<td class="danger">'+data[i][2]+'</td>');
                    clearInterval(timeout);
                 }else{
+                   htm.push('<td class="success">'+data[i][0]+'</td>');
                    htm.push('<td class="success">'+data[i][2]+'</td>');
                 }
                 htm.push('<td><textarea rows="30" cols="80" readonly="readonly">'+data[i][3]+'</textarea></td>');
                 htm.push('</tr>');
             }
             htm.push('</table>');
+            if(status == 'fail'){
+                $('#ProgressBarDiv').html(ProgressBarDanger);
+                //clearInterval(timeout);
+                alert('严重警告：注意看错误，上线失败了！！！')
+            } else {
+                $('#ProgressBarDiv').html(ProgressBar);
+            }
             $('#cnt').html(htm.join(''));
         });
-    }
-    else{
-        alert('project_name null');
-    };
+    });
 });
 
 

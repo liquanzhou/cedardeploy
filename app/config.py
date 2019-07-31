@@ -6,9 +6,9 @@
 adminuser = ['xuesong', 'admin']
 # 发布系统执行编译及ssh用户
 exec_user = 'work'
-# 本地发布系统git仓库存放目录
+# 发布系统git仓库存放目录
 project_path = '/data1/deploy_project'
-# 发布系统本的log目录
+# 发布系统本地log目录
 log_path = '/data/log'
 # 发布任务锁文件存放位置 lock_path/deploy.project.lock
 lock_path = '/tmp'
