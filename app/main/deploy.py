@@ -108,11 +108,11 @@ class Deploy:
         self.httpurl     = cinfo[10]
         self.httpcode    = cinfo[11]
 
-
-        self.host      = 'Deploy'
-        self.host_name = 'Deploy'
-        self.status    = 'ok'
-        self.commitid  = ''
+        self.host        = 'Deploy'
+        self.host_name   = 'Deploy'
+        self.status      = 'ok'
+        self.makestatus  = 'no'
+        self.commitid    = ''
 
         self.exec_user      = exec_user
         self.project_path   = project_path
@@ -363,6 +363,7 @@ class Deploy:
             os.remove(self.pkl_file)
         except:
             pass
+        self.del_backup_operation()
         if self.status == 'ok':
             sys.exit(0)
         else:
@@ -378,16 +379,22 @@ class Deploy:
         pass
 
     def makeUpdate(self):
+        self.addlog('\n--------------------- Git Code update ---------------------')
         self.code_update()
         if self.checkcommitid():
+            self.addlog('\n---------------------   Code Compile  ---------------------')
             self.make_operation()
+            self.makestatus = 'yes'
             self.tag_operation()
+            self.addlog('\n---------------------  Version Backup ---------------------')
             self.backup_operation()
             self.write_commitid()
         else:
             self.addlog('INFO: not make code')
+        self.addlog('\n---------------------   Update Config  ---------------------')
         self.build_file_operation()
         self.addlog('INFO:  tag: %s' %(self.tag))
+        self.addlog('INFO:  commitid: %s' %(self.commitid))
 
     def makeFallback(self):
         self.check_backup_operation()
@@ -503,18 +510,26 @@ class Deploy:
         self.exec_shell(shell_cmd)
 
     def backup_operation(self):
-        bak_delete_start_time = time.strftime('%Y-%m-%d %H:%M:%S')
-        shell_cmd = '''ls -dr %s/%s-%s-20* 2>/dev/null |awk "NR>9{print $1}" |xargs -i rm -rf {} 
-                    ''' %(self.project_path, self.project, self.project.split('_')[0])
-        self.exec_shell(shell_cmd)
-        bak_delete_done_time = time.strftime('%Y-%m-%d %H:%M:%S')
+        bak_start_time = time.strftime('%Y-%m-%d %H:%M:%S')
         shell_cmd = '''rsync -a --exclude .git/ --delete %s/%s/  %s/%s-%s/
                     ''' %(self.project_path, self.project, self.project_path, self.project, self.tag)
         self.exec_shell(shell_cmd)
         bak_done_time = time.strftime('%Y-%m-%d %H:%M:%S')
-        self.addlog('bak_delete_start_time: %s' %(bak_delete_start_time))
-        self.addlog('bak_delete_done_time: %s' %(bak_delete_done_time))
-        self.addlog('bak_done_time: %s' %(bak_done_time))
+        self.addlog('bak_start_time: %s' %(bak_start_time))
+        self.addlog('bak_done_time : %s' %(bak_done_time))
+
+
+    def del_backup_operation(self):
+        if self.makestatus == 'yes':
+            if self.status == 'ok':
+                num = 5
+                if self.environment == 'online':
+                    num = 9
+                shell_cmd = '''ls -dr %s/%s-%s-20* 2>/dev/null |awk "NR>%s{print $1}" |xargs -i rm -rf {} 
+                            ''' %(self.project_path, self.project, self.project.split('_')[0], num)
+            else:
+                shell_cmd = 'rm -rf %s/%s-%s/' %(self.project_path, self.project, self.tag)
+            self.exec_shell(shell_cmd)
 
 
     def check_backup_operation(self):
