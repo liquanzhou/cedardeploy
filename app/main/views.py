@@ -71,6 +71,11 @@ def workorderweb():
 def hostlisterrweb():
         return render_template("hostlisterrweb.html")
 
+@main.route("/hostmanage", methods=["GET", "POST"])
+@login_required
+def hostmanage():
+        return render_template("hostmanage.html")
+
 @main.route("/assets", methods=["GET", "POST"])
 @login_required
 def assets():
@@ -1281,4 +1286,66 @@ def reduced():
         R['log'] = str(err)
         R['status'] = 'fail'
     return json.dumps(R)
+
+
+
+@main.route("/get_area", methods=["GET", "POST"])
+def get_area():
+    bigbusiness = request.args.get("bigbusiness", "null")
+    if bigbusiness == 'pp-online':
+        area={'shal-d':'阿里云上海-D区','shal-f':'阿里云上海-F区','shal-e':'阿里云上海-E区','bjaws-d':'aws北京-D区'}
+    elif bigbusiness == 'pp-test':
+        area={'shal-d':'阿里云上海-D区'}
+    elif bigbusiness == 'zy-online':
+        area={'shal-d':'阿里云上海-D区','shal-f':'阿里云上海-F区','bjal-d':'阿里云北京-D区'}
+    elif bigbusiness == 'zy-test':
+        area={'shal-d':'阿里云上海-D区','shal-f':'阿里云上海-F区'}
+    elif bigbusiness == 'hanabi-online':
+        area={'shal-f':'阿里云上海-F区'}
+    elif bigbusiness == 'hanabi-test':
+        area={'shal-d':'阿里云上海-D区'}
+    else:
+        area={'error':'无可用区'}
+    return json.dumps(area)
+
+
+@main.route("/get_configuration", methods=["GET", "POST"])
+def get_configuration():
+    area = request.args.get("area", "null")
+    if area == 'shal-d':
+        configuration={'shal-4c8g':'4c8g计算网络增强型','shal-4c8g':'4c8g高主频型','shal-8c16g':'8c16g计算网络增强型','shal-8c32g':'8c32g内存型',}
+    elif area == 'shal-f':
+        configuration={'shal-4c8g':'4c8g计算型','shal-8c16g':'8c16g计算型','shal-8c32g':'8c32g内存型',}
+    elif area == 'shal-e':
+        configuration={'shal-4c8g':'4c8g计算型'}
+    elif area == 'bjaws-d':
+        configuration={'bjaws-4c8g':'4c8g共享型','bjaws-8c16g':'8c16g'}
+    else:
+        configuration={'error':'无可用配置'}
+    return json.dumps(configuration)
+
+
+@main.route("/create_hosts", methods=["GET", "POST"])
+@login_required
+def create_hosts():
+    bigbusiness = request.form.get("bigbusiness", "null")
+    area = request.form.get("area", "null")
+    configuration = request.form.get("configuration", "null")
+    image = request.form.get("image", "null")
+    hostnames = request.form.get("hostnames", "null")
+
+    create_hosts_taskid = 'ceshi-id-xx'
+    log = '%s\n%s\n%s\n%s\n%s' %(bigbusiness,area,configuration,image,hostnames)
+    r = {'status':'ok','hostnames':hostnames,'create_hosts_taskid':create_hosts_taskid,'log':log}
+    return json.dumps(r)
+
+@main.route("/get_create_hosts_result", methods=["GET", "POST"])
+@login_required
+def get_create_hosts_result():
+    taskid = request.args.get("taskid", "null")
+    log = '执行完成\n初始化完成\nok'
+    r = {'status':'ok','taskid':taskid,'log':log}
+    return json.dumps(r)
+
+
 

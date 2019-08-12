@@ -34,7 +34,7 @@ supervisor_log_path = '/data/logs/supervisor/'
 
 
 # 管理员菜单列表
-adminpagelist = [['online','上线'],['project_admin','项目管理'],['online_log','发布日志'],['statistics','统计'],['useradmin','用户管理'],['workorderweb','上线工单']]
+adminpagelist = [['online','上线'],['project_admin','项目管理'],['online_log','发布日志'],['statistics','统计'],['useradmin','用户管理'],['workorderweb','上线工单'],['hostmanage','主机管理']]
 # 普通用户菜单列表
 userpagelist = [['online','上线'],['project_admin','项目管理'],['online_log','发布日志'],['statistics','统计'],['workorderweb','上线工单']]
 

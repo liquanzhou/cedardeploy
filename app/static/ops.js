@@ -2,6 +2,7 @@
 //这个是全局的定时器。
 var timeout ;
 var timeout1 ;
+var timeout2 ;
 
 
 $("body").on('click', '#open_add_project', function(){
@@ -1149,7 +1150,7 @@ function next(i, hostLen){
         }
 
         var htm=['<table class="table table-bordered">'];
-        htm.push('<tr><th>host</th><th>状态</th><th>执行过程</th></tr>');
+        htm.push('<tr><th>主机</th><th>状态</th><th>执行过程</th></tr>');
         for(var i=0,len=data.length; i<len; i++){
             htm.push('<tr>');
             if(data[i][2] == 'ok' ){
@@ -1315,7 +1316,7 @@ function online_log_info(id){
     var param={ taskid:id };
     $.getJSON('/cmdreturns', param,  function(data){
         var htm=['<table class="table table-bordered">'];
-        htm.push('<tr><th>host</th><th>状态</th><th>执行过程</th></tr>');
+        htm.push('<tr><th>主机</th><th>状态</th><th>执行过程</th></tr>');
         for(var i=0,len=data.length; i<len; i++){
             htm.push('<tr>');
             if(data[i][2] == 'ok' ){
@@ -1656,7 +1657,7 @@ $("#lastlog").on('click', function(){
 
         $.getJSON('/lastlog', param,  function(data){
             var htm=['<table class="table table-bordered">'];
-            htm.push('<tr><th>host</th><th>状态</th><th>执行过程</th></tr>');
+            htm.push('<tr><th>主机</th><th>状态</th><th>执行过程</th></tr>');
             var status=''
             for(var i=0,len=data.length; i<len; i++){
                 htm.push('<tr>');
@@ -1991,8 +1992,6 @@ function doneworkorder(){
 }
 
 
-
-
 $("body").on('click', '#subworkorder', function(){
     if (confirm('请确认提交工单信息')) {
         var group   = $('#selectgroup').val()
@@ -2047,4 +2046,187 @@ $("body").on('click', '.statistics', function(){
     }
 });
 
+$("body").on('click', '.hostmanage', function(){
+    $('#create_hosts_result').html("");
+    $('#ProgressBarDiv').html("");
+    var menu = $(this).attr('menu');
+    if(menu == 'createhost'){
+        createhost()
+    } else if(menu == 'hostmanagelist'){
+        hostmanagelist()
+    } 
+});
 
+
+function createhost(){
+        var htm=['<table class="table table-bordered">'];
+        htm.push('<tr><th>创建主机</th><th>选择</th><th>备注</th></tr>');
+            htm.push('<tr>');
+            htm.push('<td>业务线</td>');
+            htm.push('<td>'+'<select class="form-control" id="selectbigbusiness" onchange="get_area()"><option value="pp-online">皮皮线上</option><option value="pp-test">皮皮测试</option><option value="zy-online">最右线上</option><option value="zy-test">最右测试</option><option value="hanabi-online">火花线上</option><option value="hanabi-test">火花测试</option></select>'+'</td>');
+            htm.push('<td></td>');
+            htm.push('</tr>');
+            htm.push('<tr>');
+            htm.push('<td>可用区</td>');
+            htm.push('<td>'+'<div id="area" class="sidebar-menu"> </div>'+'</td>');
+            htm.push('<td></td>');
+            htm.push('</tr>');
+            htm.push('<tr>');
+            htm.push('<td>配置</td>');
+            htm.push('<td>'+'<div id="configuration" class="sidebar-menu"> </div>'+'</td>');
+            htm.push('<td></td>');
+            htm.push('</tr>');
+            htm.push('<tr>');
+            htm.push('<td>镜像</td>');
+            htm.push('<td>'+'<select class="form-control" id="selectimage"><option value="centos7-zy1">centos7-zy1</option><option value="centos7-db1">centos7-db1</option><option value="centos7-ffmpeg">centos7-ffmpeg</option></select>'+'</td>');
+            htm.push('<td></td>');
+            htm.push('</tr>');
+            htm.push('<tr>');
+            htm.push('<td>主机名</td>');
+            htm.push('<td>'+'<input type="text" class="form-control" id="hostnames" placeholder="多台主机,空格分割主机名" value="">'+'</td>');
+            htm.push('<td>多台空格分割</td>');
+            htm.push('</tr>');
+            htm.push('<tr>');
+            htm.push('<td></td>');
+            htm.push('<td>'+'<button id="create_hosts" class="btn btn-small btn-success" >创建主机实例</button>'+'</td>');
+            htm.push('<td></td>');
+            htm.push('</tr>');
+        $('#hostmanage').html(htm.join(''));
+
+    get_area()
+};
+
+function hostmanagelist(){
+
+    $.getJSON('/hostlistall', function(data){
+        var htm=['<table class="table table-bordered">'];
+        htm.push('<tr><th>hostname</th><th>ip</th><th>实例id</th><th>配置</th><th>重新初始化</th><th>修改主机名</th><th>关机注销</th></tr>');
+
+        for(var i=0,len=data.length; i<len; i++){
+            var DataTime = getLocalTime(data[i][1])
+
+            htm.push('<tr>');
+            htm.push('<td>'+data[i][1]+'</td>');
+            htm.push('<td>'+data[i][0]+'</td>');
+            htm.push('<td>'+data[i][0]+'</td>');
+            htm.push('<td>'+data[i][3]+'</td>');
+            htm.push('<td>'+'重新初始化'+'</td>');
+            htm.push('<td>'+'修改主机名'+'</td>');
+            htm.push('<td>'+'关机注销'+'</td>');
+            htm.push('</tr>');
+        }
+        $('#hostmanage').html(htm.join(''));
+    });
+};
+
+function get_area(){
+    var selectbigbusiness = $('#selectbigbusiness').val()
+    var param = {
+        bigbusiness: selectbigbusiness
+    }
+    $.getJSON('/get_area', param , function(data){
+
+        var htm=['<select class="form-control" id="selectarea" onchange="get_configuration()">'];
+
+        $.each(data, function(value, valuename){
+            htm.push('<option value="'+value+'">'+valuename+'</option>');
+        })
+        htm.push('</select>');
+        $('#area').html(htm.join(''));
+        get_configuration()
+    });
+}
+
+
+function get_configuration(){
+    var selectarea = $('#selectarea').val()
+    var param = {
+        area: selectarea
+    }
+    $.getJSON('/get_configuration', param , function(data){
+
+        var htm=['<select class="form-control" id="selectconfiguration">'];
+        $.each(data, function(value, valuename){
+            htm.push('<option value="'+value+'">'+valuename+'</option>');
+        })
+        htm.push('</select>');
+
+        $('#configuration').html(htm.join(''));
+    });
+}
+
+
+$("body").on('click', '#create_hosts', function(){
+    $('#create_hosts_result').html("");
+    $('#ProgressBarDiv').html("");
+    var bigbusiness   = $('#selectbigbusiness').val()
+    var area   = $('#selectarea').val()
+    var configuration   = $('#selectconfiguration').val()
+    var image   = $('#selectimage').val()
+    var hostnames   = $('#hostnames').val()
+
+    if (confirm('请确认创建主机')) {
+        var param = {
+            bigbusiness: bigbusiness,
+            area: area,
+            configuration: configuration,
+            image: image,
+            hostnames: hostnames,
+        }
+        $.post('/create_hosts', param, function(data){
+            alert(data.status+"  "+data.log);
+            if(data.status == 'ok'){
+                if(timeout2){clearInterval(timeout2)};
+                timeout2 = setInterval(function(){
+                    get_create_hosts_result(data.create_hosts_taskid);
+                },2000);
+                //$('#create_hosts_result').html("");
+                //$('#ProgressBarDiv').html("");
+            } else {
+                alert(data.status + ' 失败 ' + data.log)
+            };
+        }, 'json');
+    };
+});
+
+
+
+function get_create_hosts_result(create_hosts_taskid){
+    var param={ taskid: create_hosts_taskid };
+    $.getJSON('/get_create_hosts_result', param,  function(data){
+
+        var htm=['<table class="table table-bordered">'];
+        htm.push('<tr><th>主机</th><th>任务id</th><th>状态</th><th>执行过程</th></tr>');
+        if(data.status == 'ok'){
+            var percentage=100;
+            var ProgressBarStatus='progress-bar-success';
+            clearInterval(timeout2);
+            htm.push('<tr>');
+            htm.push('<td class="success">'+data.hostnames+'</td>');
+            htm.push('<td class="success">'+data.taskid+'</td>');
+            htm.push('<td class="success">'+data.status+'</td>');
+            htm.push('<td><textarea rows="30" cols="80" readonly="readonly">'+data.log+'</textarea></td>');
+            htm.push('</tr>');
+        }  else if(data.status == 'wait') {
+            var percentage=50;
+            var ProgressBarStatus='progress-bar-success';
+        } else if(data.status == 'fail') {
+            var percentage=60;
+            var ProgressBarStatus='progress-bar-danger';
+            clearInterval(timeout2);
+            htm.push('<tr>');
+            htm.push('<td class="danger">'+data.hostnames+'</td>');
+            htm.push('<td class="danger">'+data.taskid+'</td>');
+            htm.push('<td class="danger">'+data.status+'</td>');
+            htm.push('<td><textarea rows="30" cols="80" readonly="readonly">'+data.log+'</textarea></td>');
+            htm.push('</tr>');
+        }
+        htm.push('</table>');
+
+        $('#create_hosts_result').html(htm.join(''));
+
+        var ProgressBar='<div class="progress-bar '+ProgressBarStatus+' progress-bar-striped" role="progressbar" aria-valuenow="'+percentage+'" aria-valuemin="0" aria-valuemax="100" style="width: '+percentage+'%">'+percentage+'%</div>';
+        $('#ProgressBarDiv').html(ProgressBar);
+
+    });
+};

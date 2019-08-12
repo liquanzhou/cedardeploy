@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block loading %}
+    <script type="text/javascript"> hostmanagelist(); </script>
+{% endblock %}
+
+{% block daohang %}
+        <div class="leftDiv" id="leftDiv" path="hostmanage">
+            <div id="project" class="sidebar-menu">
+                <ul type="disc">
+                    <li><a class="hostmanage" menu="createhost">创建主机</a></li>
+                    <li><a class="hostmanage" menu="hostmanagelist">主机管理</a></li>
+                </ul>
+            </div>
+        </div>
+{% endblock %}
+
+{% block page_content %}
+
+    <ol class="breadcrumb">
+        <li><a href="/index">Home</a></li>
+        <li class="active">主机管理</li>
+    </ol>
+
+    <div class="hostmanage_div" id="hostmanage"></div>
+
+
+    <div id="ProgressBarDiv" class="progress"></div>
+    <div id="create_hosts_result"></div>
+
+{% endblock %}
+
+
+
+
