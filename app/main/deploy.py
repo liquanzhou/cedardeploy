@@ -193,6 +193,7 @@ class Deploy:
     def hostOperation(self):
         rtime = time.strftime('%Y%m%d_%H%M%S')
         self.addlog('%s Deploy Start Time: %s\n' % (self.host_name, rtime))
+        self.addlog("PATH: %s%s/" %(self.host_path, self.project))
         self.remoteFun[self.operation]()
         self.updateHostCommit()
         rtime = time.strftime('%Y%m%d_%H%M%S')
@@ -645,7 +646,6 @@ class Deploy:
 
 
     def rsyncDir(self):
-        self.addlog("PATH: %s%s/" %(self.host_path, self.project))
         shell_cmd = '''ssh -o StrictHostKeyChecking=no -o ConnectTimeout=2 %s@%s "mkdir -p %s/%s" 
                     ''' %(self.exec_user, self.host, self.host_path, self.project)
         self.exec_shell(shell_cmd)
