@@ -481,7 +481,7 @@ $("body").on('click', '#btn_submit', function(){
         };
         $.getJSON('/lock_check', param, function(data){
             if(data['status'] == "ok"){
-                if (confirm('请确认更新' + p + '并重启服务!')) {
+                if (confirm('请确认更新' + p + '并重启服务!\u000d重要: 请确认数据库索引已经提前创建')) {
                     updateonline(param)
                     online_tag(p)
                     current_tag(p)

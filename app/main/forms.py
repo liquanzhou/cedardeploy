@@ -102,7 +102,7 @@ config_list = '''
 
 
 supervisor_python_conf = '''[program:$environment$_$project$]
-environment=HOME=/home/$USER$,PYTHONPATH=$HOST_PATH$$environment$_$project$,PROJECT_ENV="$environment$",PRODUCT_ENV="",$env$
+environment=HOME=/home/$USER$,PROJECT_ENV="$environment$",PROJECT_NAME=$project$,PROJECT_PORT=$port$,PROJECT_PATH="$HOST_PATH$$environment$_$project$/",PRODUCT_ENV="",$env$
 directory=$HOST_PATH$$environment$_$project$/
 command=/usr/bin/python  $HOST_PATH$$environment$_$project$/main.py --port=%(process_num)02d
 process_name=%(process_num)d
@@ -121,7 +121,7 @@ numprocs_start=$port$
 '''
 
 supervisor_nodejs_conf = '''[program:$environment$_$project$]
-environment=HOME=/home/$USER$,PYTHONPATH=$HOST_PATH$$environment$_$project$,PROJECT_ENV="$environment$",PRODUCT_ENV="",$env$
+environment=HOME=/home/$USER$,PROJECT_ENV="$environment$",PROJECT_NAME=$project$,PROJECT_PORT=$port$,PROJECT_PATH="$HOST_PATH$$environment$_$project$/",PRODUCT_ENV="",$env$
 directory=$HOST_PATH$$environment$_$project$/
 command=/usr/bin/node $HOST_PATH$$environment$_$project$/index.js --port=%(process_num)d
 process_name=%(process_num)d
@@ -140,7 +140,7 @@ numprocs_start=$port$
 '''
 
 supervisor_go_conf = '''[program:$environment$_$project$]
-environment=HOME=/home/$USER$,PROJECT_ENV="$environment$",PRODUCT_ENV="",$env$
+environment=HOME=/home/$USER$,PROJECT_ENV="$environment$",PROJECT_NAME=$project$,PROJECT_PORT=$port$,PROJECT_PATH="$HOST_PATH$$environment$_$project$/",PRODUCT_ENV="",$env$
 directory=$HOST_PATH$$environment$_$project$/
 command=$HOST_PATH$$environment$_$project$/bin/$project$ -f $HOST_PATH$$environment$_$project$/etc/$project-env$.conf
 process_name = %(process_num)d
@@ -158,7 +158,7 @@ loglevel=info
 '''
 
 supervisor_sh_conf = '''[program:$environment$_$project$]
-environment=HOME=/home/$USER$,PROJECT_ENV="$environment$",PRODUCT_ENV="",$env$
+environment=HOME=/home/$USER$,PROJECT_ENV="$environment$",PROJECT_NAME=$project$,PROJECT_PORT=$port$,PROJECT_PATH="$HOST_PATH$$environment$_$project$/",PRODUCT_ENV="",$env$
 directory=$HOST_PATH$$environment$_$project$/
 command=/bin/bash $HOST_PATH$$environment$_$project$/deploy_start.sh
 process_name = %(process_num)d
