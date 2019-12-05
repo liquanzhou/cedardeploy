@@ -29,9 +29,9 @@ timestamp = int(time.time())
 
 pkl = '/tmp/host_check_alarm.pkl'
 try:
-    pkl_file = open(pkl, 'rb')
-    pd = cPickle.load(pkl_file)
-    pkl_file.close()
+    pklFile = open(pkl, 'rb')
+    pd = cPickle.load(pklFile)
+    pklFile.close()
 except:
     pd = {}
 
@@ -40,8 +40,8 @@ AlarmInfo = 'ServiceDown:'
 RecoveryInfo = 'ServiceUP:'
 
 try:
-    sql = """select `project_name`,`hostname`,`ip`,`variable2`,`variable5` from `serverinfo`
-                   where variable2 != 'RUNNING' and variable2 != 'SSHOK' and variable2 != 'null'
+    sql = """select `project_name`,`hostname`,`ip`,`checkstatus`,`checktime` from `serverinfo`
+                   where checkstatus != 'RUNNING' and checkstatus != 'SSHOK' and checkstatus != 'null'
                          and project_name not like 'qa_%' and project_name not like 'test_%'; """
     c.execute(sql)
     failData = c.fetchall()
@@ -51,7 +51,7 @@ except:
 
 for s in pd.values():
     try:
-        sql = """select `variable2`,`variable5`,`hostname` from `serverinfo`
+        sql = """select `checkstatus`,`checktime`,`hostname` from `serverinfo`
                        where project_name = '%s' and ip = '%s';""" %(s['project'], s['ip'])
         c.execute(sql)
         ones = c.fetchall()
@@ -72,8 +72,8 @@ for i in failData:
             continue
         if i[0] in filterList:
             continue
-        pkl_file = '%s/deploy.%s.lock' %(lock_path, i[0])
-        if os.path.isfile(pkl_file):
+        pklFile = '/%s/%s/deploy.%s.lock' %(path_lock, i[0], i[0])
+        if os.path.isfile(pklFile):
             continue
 
         k = "%s : %s" %(i[0], i[2])
@@ -87,9 +87,9 @@ for i in failData:
         AlarmInfo = 'ServiceDown: AlarmInfo ERROR'
 
 
-pkl_file = open(pkl, 'wb')
-cPickle.dump(pd, pkl_file)
-pkl_file.close()
+pklFile = open(pkl, 'wb')
+cPickle.dump(pd, pklFile)
+pklFile.close()
 
 
 checklogfile = '/data/log/service_check.log'

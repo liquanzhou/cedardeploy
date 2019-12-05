@@ -6,12 +6,21 @@
 adminuser = ['xuesong', 'admin']
 # 发布系统执行编译及ssh用户
 exec_user = 'work'
-# 发布系统git仓库存放目录
-project_path = '/data1/deploy_project'
-# 发布系统本地log目录
-log_path = '/data/log'
-# 发布任务锁文件存放位置 lock_path/deploy.project.lock
-lock_path = '/tmp'
+# 发布系统工作目录
+deploywork  = '/data/deploywork/'
+# git仓库目录
+path_git    = deploywork + 'git/'
+# 上线log目录
+path_log    = deploywork + 'log/'
+# 任务锁文件目录
+path_lock   = deploywork + 'lock/'
+# 项目配置文件目录
+path_conf   = deploywork + 'conf/'
+# 更新执行结果目录
+path_result = deploywork + 'result/'
+
+
+
 
 #ldap: True    用户登陆: False
 #Ldap=True
@@ -51,7 +60,7 @@ basicGlist = ['op-ad', 'op-ab', 'ff-aa']
 #projectinfoallurl = 'http://127.0.0.1:6000/projectinfoall'
 #hostlistallurl = 'http://127.0.0.1:6000/hostlistall'
 # 检查服务状态时,获取主机列表
-iplistallurl = 'http://127.0.0.1:6000/iplistall'
+iplistallurl = 'http://172.16.255.146:6000/iplistall'
 # 检查失败不报警的项目  项目名
 filterList = ['online_testproject']
 # 检查失败不报警的主机列表 ip

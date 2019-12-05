@@ -47,6 +47,25 @@ def writefile(path, content):
     f.close()
 
 
+def getdir(project):
+    DIR = {}
+    dir_path_git    = path_git    + project
+    dir_path_log    = path_log    + project
+    dir_path_lock   = path_lock   + project
+    dir_path_conf   = path_conf   + project
+    dir_path_result = path_result + project
+
+    shell_cmd = '''mkdir -p %s %s %s %s %s ''' %(dir_path_git, dir_path_log, dir_path_lock, dir_path_conf, dir_path_result)
+    Result = shellcmd(shell_cmd)
+
+    DIR['git']     = dir_path_git
+    DIR['log']     = dir_path_log
+    DIR['lock']    = dir_path_lock
+    DIR['conf']    = dir_path_conf
+    DIR['result']  = dir_path_result
+
+    return DIR
+
 def getHostname(host):
     shell_cmd = '''ssh -o StrictHostKeyChecking=no -o ConnectTimeout=2 %s@%s "hostname" ''' %(exec_user, host)
     Result = shellcmd(shell_cmd)
@@ -70,9 +89,11 @@ def hostInit(project, host, Type):
 def deployConfig(project, host, ones, ones1, ones2):
     try:
         if ones.type in supervisord_list:
+            DIR = getdir(project)
+
             # supervisor
             supervisor_conf = ones2.supervisor.replace('$ip$',host).replace('$pnum$',ones1.pnum).replace('$env$',ones1.env)
-            supervisor_conf_path = '/tmp/%s_%s_supervisor.conf' %(project, host)
+            supervisor_conf_path = '%s/%s_%s_supervisor.conf' %(DIR['conf'], project, host)
             remote_supervisor_conf_path = '%s@%s:%s/%s.conf' %(exec_user, host, supervisor_conf_dir, project)
             writefile(supervisor_conf_path, supervisor_conf)
 
@@ -91,6 +112,28 @@ def deployConfig(project, host, ones, ones1, ones2):
     except Exception as err:
         return str(err)
 
+
+def logHandle(logtext):
+    result   = logtext.replace(
+                    '<', '').replace(
+                    '>', '').replace(
+                    'ERROR:', '<span style="color: red">ERROR:</span>').replace(
+                    'INFO:', '<span style="color: green">INFO:</span>').replace(
+                    'WARN:', '<span style="color: yellow">WARN:</span>').replace(
+                    'Git Code update:', '<span style="color: blue">Git Code update:</span>').replace(
+                    'Code Compile:', '<span style="color: blue">Code Compile:</span>').replace(
+                    'Version Backup:', '<span style="color: blue">Version Backup:</span>').replace(
+                    'Update Config:', '<span style="color: blue">Update Config:</span>').replace(
+                    'Del Service Start:', '<span style="color: blue">Del Service   Start:</span>').replace(
+                    'Restart Service:', '<span style="color: blue">Restart Service:</span>').replace(
+                    'Check Start:', '<span style="color: blue">Check Start:</span>').replace(
+                    'Autotest Start:', '<span style="color: blue">Autotest Start:</span>').replace(
+                    'Reg Service Start:', '<span style="color: blue">Reg Service   Start:</span>').replace(
+                    '\t', '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;').replace(
+                    '\n', '<br>'
+                )
+
+    return result
 
 crontab_conf = '''#01 01 * * * $HOST_PATH$$environment$_$project$/deploy_start.sh >> $supervisor_log_path$/$environment$_$project$.log  2>&1 
 '''

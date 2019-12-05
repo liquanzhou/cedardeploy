@@ -1,10 +1,10 @@
 #!/usr/bin/python
 
-from __future__ import print_function
 import Queue
 import threading
 import time
 import sys
+import os
 import requests
 import subprocess
 import MySQLdb as mysql
@@ -51,22 +51,17 @@ class myThread(threading.Thread):
                 print(str(err))
                 continue
             statusqueueLock.release()
-            print(data)
             if data['sshStatus'] == 'SSHOK':
                 Exclude = ''
                 for Project,Status in data['Projects'].items():
-                    sql = "update `serverinfo` set `variable2`='%s',`variable5`='%s' where ip='%s' and project_name='%s';" % (Status, data['CheckTime'], data['IP'], Project)
-                    #print sql
+                    sql = "update `serverinfo` set `checkstatus`='%s',`checktime`='%s' where ip='%s' and project_name='%s';" % (Status[0], Status[1], data['IP'], Project)
                     self.executeSQL(sql)
                     Exclude = "%s and project_name <> '%s' " %(Exclude, Project)
-                sql = "update `serverinfo` set `variable2`='%s',`variable5`='%s' where ip='%s' %s;" % (data['sshStatus'], data['CheckTime'], data['IP'], Exclude)
-                #print sql
+                sql = "update `serverinfo` set `checkstatus`='%s',`checktime`='%s' where ip='%s' %s;" % (data['sshStatus'], '0', data['IP'], Exclude)
                 self.executeSQL(sql)
             else:
-                sql = "update `serverinfo` set `variable2`='%s',`variable5`='%s' where ip='%s';" % (data['sshStatus'], data['CheckTime'], data['IP'])
-                #print sql
+                sql = "update `serverinfo` set `checkstatus`='%s',`checktime`='%s' where ip='%s';" % (data['sshStatus'], '0', data['IP'])
                 self.executeSQL(sql)
-
 
 
 
@@ -85,29 +80,33 @@ class myThread(threading.Thread):
                 continue
             queueLock.release()
 
-            CheckTime = time.strftime('%Y%m%d_%H:%M')
+            CheckTime = time.strftime('%m%d_%H:%M')
             DR = {'IP': IP, 'CheckTime': CheckTime, 'sshStatus': '', 'Projects': {} }
             try:
-                shell_cmd = '''ssh -o StrictHostKeyChecking=no -o ConnectTimeout=2 %s@%s "superctl status" |awk '{print $1, $2}' ''' %(exec_user, IP)
+                shell_cmd = '''ssh -o StrictHostKeyChecking=no -o ConnectTimeout=3 %s@%s "supervisorctl status" ''' %(exec_user, IP)
                 hoststatus = self.exec_shell(shell_cmd)
 
                 if hoststatus['status'] == 'ok':
-                    DR['sshStatus'] = 'SSHOK' 
+                    DR['sshStatus'] = 'SSHOK'
                     for s in hoststatus['log'].strip().split('\n'):
                         if s.strip() == '':
                             continue
                         project = s.split()[0].split(':')[0]
                         status = s.split()[1]
-                    
+                        try:
+                            uptime = s.split(', uptime ')[1]
+                        except:
+                            uptime = '0'
+
                         if project in DR['Projects']:
                             if status != 'RUNNING':
-                                DR['Projects'][project] = status
+                                DR['Projects'][project] = [status, uptime]
                         else:
-                            DR['Projects'][project] = status
+                            DR['Projects'][project] = [status, uptime]
                 else:
-                    DR['sshStatus'] = 'SSHFAIL' 
+                    DR['sshStatus'] = 'SSHFAIL'
             except Exception as err:
-                DR['sshStatus'] = 'UNKNOWN' 
+                DR['sshStatus'] = 'UNKNOWN'
                 print('ERROR: %s, %s' %(str(err), hoststatus['log']))
 
             statusqueueLock.acquire()
@@ -136,29 +135,29 @@ class myThread(threading.Thread):
             try:
                 self.conn.ping()
                 break
-            except Exception as e:
+            except Exception,e:
                 print('warning: mysql test ping fail')
                 print(str(e))
             try:
                 self.conn = mysql.connect(user=user, passwd=passwd, host=host, port=port, db=dbname, connect_timeout=connect_timeout, compress=compress, charset=charset)
                 self.cursor = self.conn.cursor()
                 break
-            except Exception as e:
+            except Exception,e:
                 print("mysql reconnect fail ...")
                 print(str(e))
                 time.sleep(3)
         try:
             self.cursor.execute(sql)
             self.conn.commit()
-        except Exception as e:
+        except Exception,e:
             print(str(e))
 
 
 
 queueLock = threading.Lock()
-workQueue = Queue.Queue(10000)
+workQueue = Queue.Queue(200000)
 statusqueueLock = threading.Lock()
-statusQueue = Queue.Queue(10000)
+statusQueue = Queue.Queue(200000)
 threads = []
 threadID = 1
 
@@ -170,11 +169,9 @@ for threadID in range(100):
 
 
 try:
-    iplistall = requests.get(iplistallurl, timeout=2).json()
+    iplistall = requests.get('http://172.16.255.146:6000/iplistall', timeout=2).json()
 except Exception as err:
-    time.sleep(10)
     print('ERROR: iplistall URL GET fail')
-    continue
 queueLock.acquire()
 try:
     for ip in iplistall:
@@ -185,32 +182,27 @@ except Exception as err:
 queueLock.release()
 
 
-
-time.sleep(1)
+    
+time.sleep(1) 
 while True:
     queueLock.acquire()
-    print 'work q %s' % workQueue.qsize()
     if workQueue.empty():
         break
     else:
         queueLock.release()
-        time.sleep(1)
-
-while True:
+        time.sleep(1) 
+    
+while True:    
     statusqueueLock.acquire()
-    print 'status q %s' % statusQueue.qsize()
     if statusQueue.empty():
-        print 'exit'
         os._exit(0)
     else:
         statusqueueLock.release()
-        time.sleep(1)
-
+        time.sleep(1) 
 
 
 exitFlag = 1
-
-
 for t in threads:
     t.join()
 print("Exiting Main Thread")
+

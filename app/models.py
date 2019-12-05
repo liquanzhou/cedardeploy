@@ -5,10 +5,6 @@ from . import db, login_manager
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 
-# python manager.py shell
-# from app.models import User, serverinfo, projectinfo, updatelog
-# db.create_all()
-# ALTER TABLE projectinfo ADD COLUMN ischeck VARCHAR(10) NULL DEFAULT 'no';
 
 class User(UserMixin, db.Model):
     __tablename__ = 'user'
@@ -129,27 +125,6 @@ class project_config(db.Model):
         self.httpcode = httpcode
 
 
-class updatelog(db.Model):
-    __tablename__ = 'updatelog'
-    id = db.Column(db.Integer, primary_key=True)
-    taskid = db.Column(db.String(64), index=True)
-    project_name = db.Column(db.String(64))
-    host = db.Column(db.String(2000))
-    tag = db.Column(db.String(64))
-    rtime = db.Column(db.String(32))
-    status = db.Column(db.String(10))
-    loginfo = db.Column(db.Text)
-
-    def __init__(self, taskid, project_name, host, tag, rtime, status, loginfo):
-        self.taskid = taskid
-        self.project_name = project_name
-        self.host = host
-        self.tag = tag
-        self.rtime = rtime
-        self.status = status
-        self.loginfo = loginfo
-
-
 class updateoperation(db.Model):
     __tablename__ = 'updateoperation'
     taskid = db.Column(db.String(64), primary_key=True, index=True)
@@ -161,8 +136,10 @@ class updateoperation(db.Model):
     user = db.Column(db.String(50))
     status = db.Column(db.String(20))
     commitid = db.Column(db.String(1024))
+    progress = db.Column(db.Integer)
+    logpath = db.Column(db.String(2000))
 
-    def __init__(self, taskid, project_name, hostlist, tag, rtime, operation, user, status, commitid):
+    def __init__(self, taskid, project_name, hostlist, tag, rtime, operation, user, status, commitid, progress, logpath):
         self.taskid = taskid
         self.project_name = project_name
         self.hostlist = hostlist
@@ -172,6 +149,8 @@ class updateoperation(db.Model):
         self.user = user
         self.status = status
         self.commitid = commitid
+        self.progress = progress
+        self.logpath = logpath
 
 
 class workorder(db.Model):

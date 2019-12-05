@@ -885,7 +885,7 @@ function host_list_table(p){
         var htm=['<table class="table table-hover">'];
         if (data!='' && data!=undefined && data!=null){
             if($('#leftDiv').attr('path') == "online"){
-                htm.push('<thead><tr><th>hostname</th><th>ip</th><th>pnum</th><th>status</th><th>checkTime</th><th>commitID</th><th>Tag</th><th>stop</th></thead>');
+                htm.push('<thead><tr><th>hostname</th><th>ip</th><th>pnum</th><th>status</th><th>UpTime</th><th>commitID</th><th>Tag</th><th>stop</th></thead>');
                 for(var i=0,len=data.length; i<len; i++){
                     if(data[i][1] != "essExpansion"){
                         htm.push('<tr>');
@@ -905,7 +905,7 @@ function host_list_table(p){
                         } else {
                             htm.push('<td><div id="status'+data[i][0].replace(/\./g,"-")+'" class="sidebar-menu"><font color="red">'+data[i][6]+'</font></div></td>');
                         }
-                        htm.push('<td><div id="checkTime'+data[i][0].replace(/\./g,"-")+'" class="sidebar-menu">'+data[i][7]+'</div></td>');
+                        htm.push('<td><div id="UpTime'+data[i][0].replace(/\./g,"-")+'" class="sidebar-menu">'+data[i][7]+'</div></td>');
                         htm.push('<td><div id="commitID'+data[i][0].replace(/\./g,"-")+'" class="sidebar-menu">'+data[i][8]+'</div></td>');
                         htm.push('<td><div id="Tag'+data[i][0].replace(/\./g,"-")+'" class="sidebar-menu">'+data[i][10]+'</div></td>');
                         htm.push('<td>'+'<a href="javascript:;" onclick=stop_submit("'+data[i][0]+'");>stop</a>'+'</td>');
@@ -956,7 +956,7 @@ function host_list_status(p){
                 } else {
                     $('#status'+data[i][0].replace(/\./g,"-")).html('<font color="red">'+data[i][6]+'</font>');
                 }
-                $('#checkTime'+data[i][0].replace(/\./g,"-")).html(data[i][7]);
+                $('#UpTime'+data[i][0].replace(/\./g,"-")).html(data[i][7]);
                 $('#commitID'+data[i][0].replace(/\./g,"-")).html(data[i][8]);
                 $('#Tag'+data[i][0].replace(/\./g,"-")).html(data[i][10]);
             }
@@ -1131,10 +1131,10 @@ function selectAll(n){
 }
 
 
-function next(i, hostLen){
-    var param={ taskid:i };
+function next(taskid, hostLen){
+    var param={ taskid: taskid };
     $.getJSON('/cmdreturns', param,  function(data){
-        var percentage=parseInt(data.length * 100 / (hostLen+1));
+        var percentage=parseInt(data['progress'] * 100 / (hostLen+1));
         if(percentage<10){
             var percentage=10;
         }
@@ -1145,26 +1145,24 @@ function next(i, hostLen){
 
         $('#ProgressBarDiv').html(ProgressBar);
 
-        if(data.length == hostLen+1){
+        if(data['progress'] == hostLen+1){
             clearInterval(timeout);
         }
 
         var htm=['<table class="table table-bordered">'];
-        htm.push('<tr><th>主机</th><th>状态</th><th>执行过程</th></tr>');
-        for(var i=0,len=data.length; i<len; i++){
+        htm.push('<tr><th>状态</th><th>执行过程</th></tr>');
             htm.push('<tr>');
-            if(data[i][2] == 'ok' ){
-               htm.push('<td class="success">'+data[i][0]+'</td>');
-               htm.push('<td class="success">'+data[i][2]+'</td>');
+            if(data['status'] == 'ok' ){
+               htm.push('<td class="success">'+data['status']+'</td>');
+            }else if(data['status'] == 'wait'){
+               htm.push('<td class="success">'+data['status']+'</td>');
             }else{
-               htm.push('<td class="danger">'+data[i][0]+'</td>');
-               htm.push('<td class="danger">'+data[i][2]+'</td>');
+               htm.push('<td class="danger">'+data['status']+'</td>');
                $('#ProgressBarDiv').html(ProgressBarDanger);
                clearInterval(timeout);
             }
-            htm.push('<td><textarea rows="30" cols="80" readonly="readonly">'+data[i][3]+'</textarea></td>');
+            htm.push('<td><div contenteditable="true">'+data['result']+'</div></td>');
             htm.push('</tr>');
-        }
         htm.push('</table>');
         $('#cnt').html(htm.join(''));
     });
@@ -1316,19 +1314,15 @@ function online_log_info(id){
     var param={ taskid:id };
     $.getJSON('/cmdreturns', param,  function(data){
         var htm=['<table class="table table-bordered">'];
-        htm.push('<tr><th>主机</th><th>状态</th><th>执行过程</th></tr>');
-        for(var i=0,len=data.length; i<len; i++){
-            htm.push('<tr>');
-            if(data[i][2] == 'ok' ){
-               htm.push('<td class="success">'+data[i][0]+'</td>');
-               htm.push('<td class="success">'+data[i][2]+'</td>');
-            }else{
-               htm.push('<td class="danger">'+data[i][0]+'</td>');
-               htm.push('<td class="danger">'+data[i][2]+'</td>');
-            }
-            htm.push('<td><textarea rows="30" cols="80" readonly="readonly">'+data[i][3]+'</textarea></td>');
-            htm.push('</tr>');
+        htm.push('<tr><th>状态</th><th>执行过程</th></tr>');
+        htm.push('<tr>');
+        if(data['status'] == 'ok' ){
+           htm.push('<td class="success">'+data['status']+'</td>');
+        }else{
+           htm.push('<td class="danger">'+data['status']+'</td>');
         }
+        htm.push('<td><div contenteditable="true">'+data['result']+'</div></td>');
+        htm.push('</tr>');
         htm.push('</table>');
         $('#online_log').html(htm.join(''));
     });
@@ -1657,22 +1651,18 @@ $("#lastlog").on('click', function(){
 
         $.getJSON('/lastlog', param,  function(data){
             var htm=['<table class="table table-bordered">'];
-            htm.push('<tr><th>主机</th><th>状态</th><th>执行过程</th></tr>');
+            htm.push('<tr><th>状态</th><th>执行过程</th></tr>');
             var status=''
-            for(var i=0,len=data.length; i<len; i++){
-                htm.push('<tr>');
-                if(data[i][2] == 'fail' ){
-                   var status=data[i][2]
-                   htm.push('<td class="danger">'+data[i][0]+'</td>');
-                   htm.push('<td class="danger">'+data[i][2]+'</td>');
-                   clearInterval(timeout);
-                }else{
-                   htm.push('<td class="success">'+data[i][0]+'</td>');
-                   htm.push('<td class="success">'+data[i][2]+'</td>');
-                }
-                htm.push('<td><textarea rows="30" cols="80" readonly="readonly">'+data[i][3]+'</textarea></td>');
-                htm.push('</tr>');
+            htm.push('<tr>');
+            if(data['status'] == 'fail' ){
+               var status=data['status']
+               htm.push('<td class="danger">'+data['status']+'</td>');
+               clearInterval(timeout);
+            }else{
+               htm.push('<td class="success">'+data['status']+'</td>');
             }
+            htm.push('<td><div contenteditable="true">'+data['result']+'</div></td>');
+            htm.push('</tr>');
             htm.push('</table>');
             if(status == 'fail'){
                 $('#ProgressBarDiv').html(ProgressBarDanger);

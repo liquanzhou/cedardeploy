@@ -109,27 +109,33 @@ class Deploy:
         self.httpcode    = cinfo[11]
 
         self.host        = 'Deploy'
-        self.host_name   = 'Deploy'
+        self.hostName    = 'Deploy'
         self.status      = 'ok'
+        self.progress    = 0
         self.makestatus  = 'no'
         self.commitid    = ''
 
-        self.exec_user      = exec_user
-        self.project_path   = project_path
+        self.execUser       = exec_user
         self.basicGlist     = basicGlist
         self.businessRobot  = businessRobot
         self.sreRobot       = sreRobot
         self.autotestURL    = autotestURL
         self.autolist       = autolist
-        self.host_path      = remote_host_path
+        self.hostPath       = remote_host_path
 
         print(self.autolist)
 
 
-        self.pkl_file = '%s/deploy.%s.lock' %(lock_path, project)
-        self.loginfo = 'user: %s\nhostlist: %s\noperation: %s\nproject: %s\ntaskid: %s\n' %(
-                        self.currentuser, self.hostlist, self.operation, self.project, self.taskid)
+        self.dir_path_git    = path_git    + project
+        self.dir_path_log    = path_log    + project
+        self.dir_path_lock   = path_lock   + project
+        self.dir_path_conf   = path_conf   + project
+        self.dir_path_result = path_result + project
 
+
+        self.pklFile = '%s/deploy.%s.lock' %(self.dir_path_lock, project)
+
+        self.logPath = file('%s/%s.log' % (self.dir_path_result, self.tag), 'a+')
 
         self.makeFun      = {   "serviceStop":         self.notexec,
                                 "serviceUpdate":       self.makeUpdate,
@@ -184,21 +190,23 @@ class Deploy:
 
     def makeOperation(self):
         rtime = time.strftime('%Y%m%d_%H%M%S')
+        self.addlog('user: %s\nhostlist: %s\noperation: %s\nproject: %s\ntaskid: %s\n' %(
+                    self.currentuser, self.hostlist, self.operation, self.project, self.taskid) )
         self.addlog('Deploy System Compile Start Time: %s\n' % rtime)
         self.makeFun[self.operation]()
         rtime = time.strftime('%Y%m%d_%H%M%S')
         self.addlog('\nDeploy System Compile Done Time: %s' % rtime)
-        self.wlogsql()
+        self.updateProgress()
 
     def hostOperation(self):
         rtime = time.strftime('%Y%m%d_%H%M%S')
-        self.addlog('%s Deploy Start Time: %s\n' % (self.host_name, rtime))
-        self.addlog("PATH: %s%s/" %(self.host_path, self.project))
+        self.addlog('%s Deploy Start Time: %s\n' % (self.hostName, rtime))
+        self.addlog("PATH: %s%s/" %(self.hostPath, self.project))
         self.remoteFun[self.operation]()
         self.updateHostCommit()
         rtime = time.strftime('%Y%m%d_%H%M%S')
-        self.addlog('\n%s Deploy Done Time: %s' % (self.host_name, rtime))
-        self.wlogsql()
+        self.addlog('\n%s Deploy Done Time: %s' % (self.hostName, rtime))
+        self.updateProgress()
 
     def serviceStop(self):
         pnum = self.hostnameinfo[self.host][1]
@@ -209,16 +217,16 @@ class Deploy:
     def serviceRestart(self):
         pnum = self.hostnameinfo[self.host][1]
         for port in range(self.port, self.port + pnum):
-            self.addlog('\n---------------------  Del Service Start ---------------------')
+            self.addlog('\nDel Service Start:')
             self.removeService(port)
-            self.addlog('\n---------------------   Restart Service  ---------------------')
+            self.addlog('\nRestart Service:')
             self.restart[self.Type](port)
-            self.addlog('\n---------------------    Check Start     ---------------------')
+            self.addlog('\nCheck Start:')
             self.check_status(port)
             self.http_check(port)
-            self.addlog('\n---------------------   Autotest Start   ---------------------')
+            self.addlog('\nAutotest Start:')
             self.autotest(port)
-            self.addlog('\n---------------------  Reg Service Start ---------------------')
+            self.addlog('\nReg Service Start:')
             self.increaseService(port)
 
     def serviceUpdate(self):
@@ -235,28 +243,14 @@ class Deploy:
     def currenthost(self, host):
         self.host = host
         try:
-            self.host_name = self.hostnameinfo[self.host][0]
+            self.hostName = self.hostnameinfo[self.host][0]
         except:
-            self.host_name = self.host
+            self.hostName = self.host
 
     def addlog(self, newlog):
-        self.loginfo = '%s\n%s' %(self.loginfo, newlog)
+        self.logPath.write('\n%s' %newlog)
+        self.logPath.flush()
 
-    def wlogsql(self):
-
-        rtime = time.strftime('%Y%m%d_%H%M%S')
-        loginfo = self.loginfo.replace("'","\'\'")
-        sql = "INSERT INTO `updatelog` (`taskid`,`project_name`,`host`,`tag`,`rtime`,`status`,`loginfo`)  \
-                      VALUES('%s', '%s', '%s', '%s', '%s', '%s', '%s'); " % (
-                      self.taskid, self.project, self.host_name, self.tag, rtime, self.status, loginfo)
-        print(sql)
-        try:
-            c.execute(sql)
-            self.loginfo = ''
-        except Exception as err:
-            print('ERROR: wlogsql execute SQL fail')
-            print(str(err))
-            self.done()
 
     def updateHostCommit(self):
         if self.commitid:
@@ -277,6 +271,16 @@ class Deploy:
             c.execute(sql)
         except Exception as err:
             print('ERROR: updateTaskStatus execute SQL fail')
+            print(str(err))
+
+    def updateProgress(self):
+        self.progress = self.progress + 1
+        sql = "update `updateoperation` set `progress`=%d where project_name='%s' and taskid='%s';" % (self.progress, self.project, self.taskid)
+        print(sql)
+        try:
+            c.execute(sql)
+        except Exception as err:
+            print('ERROR: updateProgress execute SQL fail')
             print(str(err))
 
     def notice(self):
@@ -343,6 +347,16 @@ class Deploy:
         else:
             self.faildone(logs)
 
+    def ssh_shell(self, remoteCmd):
+        shell_cmd = '''ssh -o StrictHostKeyChecking=no -o ConnectTimeout=2 %s@%s "%s"
+                    ''' %(self.execUser, self.host, remoteCmd)
+        self.exec_shell(shell_cmd)
+
+    def ssh_rsync(self, localPath, remotePath):
+        shell_cmd = '''rsync -az --delete -e "ssh -o StrictHostKeyChecking=no -o ConnectTimeout=2" %s/ %s@%s:%s/  > /dev/null
+                    ''' %(localPath, self.execUser, self.host, remotePath)
+        self.exec_shell(shell_cmd)
+
     def dingding(self, Robot, content):
         data = {
                 "msgtype": "text",
@@ -361,10 +375,11 @@ class Deploy:
         if self.operation == 'serviceExpansion':
             self.expansion_notice()
         try:
-            os.remove(self.pkl_file)
+            os.remove(self.pklFile)
         except:
             pass
         self.del_backup_operation()
+        self.logPath.close()
         if self.status == 'ok':
             sys.exit(0)
         else:
@@ -373,26 +388,25 @@ class Deploy:
     def faildone(self, log=''):
         self.addlog('ERROR: %s' %(log))
         self.status = 'fail'
-        self.wlogsql()
         self.done()
 
     def notexec(self, port = None):
         pass
 
     def makeUpdate(self):
-        self.addlog('\n--------------------- Git Code update ---------------------')
+        self.addlog('\nGit Code update:')
         self.code_update()
         if self.checkcommitid():
-            self.addlog('\n---------------------   Code Compile  ---------------------')
+            self.addlog('\nCode Compile:')
             self.make_operation()
             self.makestatus = 'yes'
             self.tag_operation()
-            self.addlog('\n---------------------  Version Backup ---------------------')
+            self.addlog('\nVersion Backup:')
             self.backup_operation()
             self.write_commitid()
         else:
             self.addlog('INFO: not make code')
-        self.addlog('\n---------------------   Update Config  ---------------------')
+        self.addlog('\nUpdate Config:')
         self.build_file_operation()
         self.addlog('INFO:  tag: %s' %(self.tag))
         self.addlog('INFO:  commitid: %s' %(self.commitid))
@@ -411,10 +425,10 @@ class Deploy:
     def code_update(self):
         if self.Type == 'go':
             shell_cmd = ''' rm -rf %s/%s ; git  clone  --depth=1 -b %s %s %s/%s && cd %s/%s && git log -n 1 --stat
-                        ''' %(self.project_path, self.project, self.branch, self.git, self.project_path, self.project, self.project_path, self.project )
+                        ''' %(self.dir_path_git, self.project, self.branch, self.git, self.dir_path_git, self.project, self.dir_path_git, self.project )
             self.exec_shell(shell_cmd)
-        elif os.path.isdir('%s/%s' %(self.project_path, self.project) ):
-            shell_cmd = "cd %s/%s && git remote -v |grep fetch |awk '{print $2}'" %(self.project_path, self.project)
+        elif os.path.isdir('%s/%s' %(self.dir_path_git, self.project) ):
+            shell_cmd = "cd %s/%s && git remote -v |grep fetch |awk '{print $2}'" %(self.dir_path_git, self.project)
             Result = self.exec_shell(shell_cmd)
             localGit = Result['log'].strip()
             if localGit == self.git:
@@ -422,21 +436,21 @@ class Deploy:
                                       && git fetch && git checkout %s && git reset --hard origin/%s \
                                       && git submodule init && git submodule update \
                                       && git log -n 1 --stat
-                            '''  %(self.project_path, self.project, self.branch, self.branch)
+                            '''  %(self.dir_path_git, self.project, self.branch, self.branch)
                 self.exec_shell(shell_cmd)
             else:
-                shell_cmd = 'rm -rf %s/%s' %(self.project_path, self.project)
+                shell_cmd = 'rm -rf %s/%s' %(self.dir_path_git, self.project)
                 self.addlog(shell_cmd)
                 self.exec_shell(shell_cmd)
-                shell_cmd = 'git clone  %s %s/%s' %(self.git, self.project_path, self.project)
+                shell_cmd = 'git clone  %s %s/%s' %(self.git, self.dir_path_git, self.project)
                 self.addlog(shell_cmd)
                 self.exec_shell(shell_cmd)
         else:
-            shell_cmd = 'git clone  %s %s/%s' %(self.git, self.project_path, self.project)
+            shell_cmd = 'git clone  %s %s/%s' %(self.git, self.dir_path_git, self.project)
             self.addlog(shell_cmd)
             self.exec_shell(shell_cmd)
 
-        shell_cmd = "cd %s/%s && git rev-parse HEAD" %(self.project_path, self.project)
+        shell_cmd = "cd %s/%s && git rev-parse HEAD" %(self.dir_path_git, self.project)
         Result = self.exec_shell(shell_cmd)
         self.commitid = Result['log'].strip()[0:8]
 
@@ -458,23 +472,23 @@ class Deploy:
 
     def local_commitid(self):
         self.commitid = os.popen('cat  %s/%s-%s/commit.id' %(
-                                  self.project_path, self.project, self.tag )).read().strip()
+                                  self.dir_path_git, self.project, self.tag )).read().strip()
         self.addlog('localCommitId: %s' %(self.commitid))
 
 
     def build_file_operation(self):
-        if not os.path.isdir('%s/%s-%s/' %(self.project_path, self.project, self.tag)):
+        if not os.path.isdir('%s/%s-%s/' %(self.dir_path_git, self.project, self.tag)):
             self.faildone('%s/%s-%s/ directory does not exist. build_file_operation' 
-                      %(self.project_path, self.project, self.tag) )
+                      %(self.dir_path_git, self.project, self.tag) )
 
         if self.Type == 'golang':
-            shell_cmd = "cd %s/%s-%s && rm -rf  deploy-etc/ deploy-bin/etc && mkdir -p deploy-bin && git clone --depth=1 %s deploy-etc  && cp -a deploy-etc/etc  deploy-bin/etc " %(self.project_path, self.project, self.tag, self.supervisor.strip() )
+            shell_cmd = "cd %s/%s-%s && rm -rf  deploy-etc/ deploy-bin/etc && mkdir -p deploy-bin && git clone --depth=1 %s deploy-etc  && cp -a deploy-etc/etc  deploy-bin/etc " %(self.dir_path_git, self.project, self.tag, self.supervisor.strip() )
             self.exec_shell(shell_cmd)
             shell_cmd = '''cd %s/%s-%s && cp -a startdata libs deploy-bin/ ''' %(
-                                  self.project_path, self.project, self.tag)
+                                  self.dir_path_git, self.project, self.tag)
             print(os.popen(shell_cmd).read())
             shell_cmd = '''cd %s/%s-%s && cp -a deploy-etc deploy-bin/etc 
-                        ''' %(self.project_path, self.project, self.tag)
+                        ''' %(self.dir_path_git, self.project, self.tag)
             print(os.popen(shell_cmd).read())
 
             self.addlog('---------------------------\n%s\n---------------------------' %self.supervisor)
@@ -488,10 +502,10 @@ class Deploy:
             if self.Type == 'golang':
                 shell_cmd = '''cd %s/%s && . $HOME/.bashrc  \
                                       && sh deploy_build.sh %s %s
-                            ''' %(self.project_path, self.project, self.project, self.make)
+                            ''' %(self.dir_path_git, self.project, self.project, self.make)
             else:
                 shell_cmd = "cd %s/%s  && . $HOME/.bashrc && %s" %(
-                             self.project_path, self.project, self.make)
+                             self.dir_path_git, self.project, self.make)
             self.exec_shell(shell_cmd)
             make_done_time = time.strftime('%Y-%m-%d %H:%M:%S')
             self.addlog('make_start_time: %s' %(make_start_time))
@@ -501,19 +515,19 @@ class Deploy:
     def tag_operation(self):
         if self.istag == 'yes':
             shell_cmd = "cd %s/%s && git tag %s-%s && git push origin --tags" %(
-                           self.project_path, self.project, self.project, self.tag)
+                           self.dir_path_git, self.project, self.project, self.tag)
             self.exec_shell(shell_cmd)
 
     def write_commitid(self):
         self.addlog('INFO: write_commitid')
         shell_cmd = 'echo %s >  %s/%s-%s/commit.id' %(
-                     self.commitid, self.project_path, self.project, self.tag)
+                     self.commitid, self.dir_path_git, self.project, self.tag)
         self.exec_shell(shell_cmd)
 
     def backup_operation(self):
         bak_start_time = time.strftime('%Y-%m-%d %H:%M:%S')
         shell_cmd = '''rsync -a --exclude .git/ --delete %s/%s/  %s/%s-%s/
-                    ''' %(self.project_path, self.project, self.project_path, self.project, self.tag)
+                    ''' %(self.dir_path_git, self.project, self.dir_path_git, self.project, self.tag)
         self.exec_shell(shell_cmd)
         bak_done_time = time.strftime('%Y-%m-%d %H:%M:%S')
         self.addlog('bak_start_time: %s' %(bak_start_time))
@@ -527,19 +541,19 @@ class Deploy:
                 if self.environment == 'online':
                     num = 9
                 shell_cmd = '''ls -dr %s/%s-%s-20* 2>/dev/null |awk "NR>%s{print $1}" |xargs -i rm -rf {} 
-                            ''' %(self.project_path, self.project, self.project.split('_')[0], num)
+                            ''' %(self.dir_path_git, self.project, self.project.split('_')[0], num)
             else:
-                shell_cmd = 'rm -rf %s/%s-%s/' %(self.project_path, self.project, self.tag)
+                shell_cmd = 'rm -rf %s/%s-%s/' %(self.dir_path_git, self.project, self.tag)
             self.exec_shell(shell_cmd)
 
 
     def check_backup_operation(self):
-        if os.path.isdir('%s/%s-%s/' %(self.project_path, self.project, self.tag)):
+        if os.path.isdir('%s/%s-%s/' %(self.dir_path_git, self.project, self.tag)):
             self.addlog('INFO: %s/%s-%s directory does exist. check_backup_operation' 
-                      %( self.project_path, self.project, self.tag) )
+                      %( self.dir_path_git, self.project, self.tag) )
         else:
             self.faildone('%s/%s-%s directory does not exist. check_backup_operation' 
-                      %( self.project_path, self.project, self.tag) )
+                      %( self.dir_path_git, self.project, self.tag) )
 
     def check_status(self, port = None):
         if port is None:
@@ -607,72 +621,62 @@ class Deploy:
 
 
     def stopSupervisor(self, port = None):
-        shell_cmd = '''ssh -o StrictHostKeyChecking=no -o ConnectTimeout=2 %s@%s " supervisorctl stop %s: " 
-                    ''' %(self.exec_user, self.host, self.project)
-        self.exec_shell(shell_cmd)
+        remoteCmd = 'supervisorctl stop %s:' %(self.project)
+        self.ssh_shell(remoteCmd)
     def stopSupervisorPort(self, port = None):
-        shell_cmd = '''ssh -o StrictHostKeyChecking=no -o ConnectTimeout=2 %s@%s " supervisorctl stop %s:%s " 
-                    ''' %(self.exec_user, self.host, self.project, port)
-        self.exec_shell(shell_cmd)
+        remoteCmd = 'supervisorctl stop %s:%s' %(self.project, port)
+        self.ssh_shell(remoteCmd)
     def stopJava(self, port = None):
-        shell_cmd = '''ssh -o StrictHostKeyChecking=no -o ConnectTimeout=2 %s@%s "%s/%s/bin/catalina.sh stop 30 -force;" 
-                    ''' %(self.exec_user, self.host, self.host_path, self.project)
-        self.exec_shell(shell_cmd)
-
+        remoteCmd = '%s/%s/bin/catalina.sh stop 30 -force;' %(self.hostPath, self.project)
+        self.ssh_shell(remoteCmd)
 
 
     def restartSupervisor(self, port = None):
-        shell_cmd = '''ssh -o StrictHostKeyChecking=no -o ConnectTimeout=2 %s@%s "supervisorctl stop %s: ;supervisorctl update;supervisorctl start %s:" 
-                    ''' %(self.exec_user, self.host, self.project, self.project)
-        self.exec_shell(shell_cmd)
+        remoteCmd = 'supervisorctl stop %s: ;supervisorctl update;supervisorctl start %s:' %(self.project, self.project)
+        self.ssh_shell(remoteCmd)
     def restartSupervisorPort(self, port = None):
         if port is None:
             port = self.port
-        shell_cmd = '''ssh -o StrictHostKeyChecking=no -o ConnectTimeout=2 %s@%s "supervisorctl stop %s:%s ;supervisorctl update;supervisorctl start %s:%s" 
-                    ''' %(self.exec_user, self.host, self.project, port, self.project, port)
-        self.exec_shell(shell_cmd)
+        remoteCmd = 'supervisorctl stop %s:%s ;supervisorctl update;supervisorctl start %s:%s' %(self.project, port, self.project, port)
+        self.ssh_shell(remoteCmd)
     def restartJava(self, port = None):
-        shell_cmd = '''ssh -o StrictHostKeyChecking=no -o ConnectTimeout=2 %s@%s "%s/%s/bin/catalina.sh stop 30 -force; \
+        shell_cmd = '''"%s/%s/bin/catalina.sh stop 30 -force; \
                        rm -rf %s/%s/webapps/ROOT %s/%s/webapps/%s.war ; \
                        %s/%s/bin/catalina.sh start; sleep 1; \
                        tail -5 $s/%s/logs/catalina.out" 
-                    ''' %(self.exec_user, self.host, self.host_path, self.project, self.host_path, self.project, 
-                          self.host_path, self.project, self.host_path, self.project, self.project, self.host_path, self.project)
-        print(shell_cmd)
-        self.exec_shell(shell_cmd)
-        if 'Address already in use' in self.loginfo:
-            self.faildone('Address already in use')
+                    ''' %(self.hostPath, self.project, self.hostPath, self.project, self.hostPath, 
+                          self.project, self.hostPath, self.project, self.project, self.hostPath, self.project)
+        self.ssh_shell(remoteCmd)
 
 
 
     def rsyncDir(self):
-        shell_cmd = '''ssh -o StrictHostKeyChecking=no -o ConnectTimeout=2 %s@%s "mkdir -p %s/%s" 
-                    ''' %(self.exec_user, self.host, self.host_path, self.project)
-        self.exec_shell(shell_cmd)
-        shell_cmd = '''rsync -az --delete -e "ssh -o StrictHostKeyChecking=no -o ConnectTimeout=2" %s/%s-%s/ %s@%s:%s/%s/  > /dev/null  
-                    ''' %(self.project_path, self.project, self.tag, self.exec_user, self.host, self.host_path, self.project)
-        self.exec_shell(shell_cmd)
+        remoteCmd = 'mkdir -p %s/%s' %(self.hostPath, self.project)
+        self.ssh_shell(remoteCmd)
+        localPath  = '%s/%s-%s/' %(self.dir_path_git, self.project, self.tag)
+        remotePath = '%s/%s' %(self.hostPath, self.project)
+        self.ssh_rsync(localPath, remotePath)
     def rsyncPhp(self):
-        shell_cmd = '''ssh -o StrictHostKeyChecking=no -o ConnectTimeout=2 %s@%s "mkdir -p %s/%s/conf" 
-                    ''' %(self.exec_user, self.host, self.host_path, self.project)
-        self.exec_shell(shell_cmd)
-        shell_cmd = '''rsync -az --delete -e "ssh -o StrictHostKeyChecking=no -o ConnectTimeout=2" %s/%s-%s/conf/ %s@%s:%s/%s/conf/  > /dev/null  
-                    ''' %(self.project_path, self.project, self.tag, self.exec_user, self.host, self.host_path, self.project)
-        self.exec_shell(shell_cmd)
-        shell_cmd = '''rsync -az --delete -e "ssh -o StrictHostKeyChecking=no -o ConnectTimeout=2" %s/%s-%s/ %s@%s:%s/%s/  > /dev/null  
-                    ''' %(self.project_path, self.project, self.tag, self.exec_user, self.host, self.host_path, self.project)
-        self.exec_shell(shell_cmd)
+        remoteCmd = 'mkdir -p %s/%s/conf' %(self.hostPath, self.project)
+        self.ssh_shell(remoteCmd)
+        localPath  = '%s/%s-%s/conf/' %(self.dir_path_git, self.project, self.tag)
+        remotePath = '%s/%s/conf/' %(self.hostPath, self.project)
+        self.ssh_rsync(localPath, remotePath)
+
+        localPath  = '%s/%s-%s/' %(self.dir_path_git, self.project, self.tag)
+        remotePath = '%s/%s/' %(self.hostPath, self.project)
+        self.ssh_rsync(localPath, remotePath)
+
     def rsyncGolang(self):
-        shell_cmd = '''ssh -o StrictHostKeyChecking=no -o ConnectTimeout=2 %s@%s "mkdir -p %s/%s" 
-                    ''' %(self.exec_user, self.host, self.host_path, self.project)
-        self.exec_shell(shell_cmd)
-        shell_cmd = '''rsync -az --delete -e "ssh -o StrictHostKeyChecking=no -o ConnectTimeout=2" %s/%s-%s/deploy-bin/ %s@%s:%s/%s/  > /dev/null  
-                    ''' %(self.project_path, self.project, self.tag, self.exec_user, self.host, self.host_path, self.project)
-        self.exec_shell(shell_cmd)
+        remoteCmd = 'mkdir -p %s/%s' %(self.hostPath, self.project)
+        self.ssh_shell(remoteCmd)
+        localPath  = '%s/%s-%s/deploy-bin/' %(self.dir_path_git, self.project, self.tag)
+        remotePath = '%s/%s/' %(self.hostPath, self.project)
+        self.ssh_rsync(localPath, remotePath)
     def rsyncJava(self):
         war_path = config4.split(' ')[0].strip().split('\n')[0]
         shell_cmd = '''scp -o StrictHostKeyChecking=no -o ConnectTimeout=2 %s/%s-%s/%s  %s@%s:%s/%s/webapps/ROOT.war  > /dev/null  
-                    ''' %(self.project_path, self.project, self.tag, war_path, self.exec_user, self.host, self.host_path, self.project)
+                    ''' %(self.dir_path_git, self.project, self.tag, war_path, self.execUser, self.host, self.hostPath, self.project)
         self.exec_shell(shell_cmd)
 
 

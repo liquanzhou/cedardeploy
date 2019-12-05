@@ -27,7 +27,7 @@ sys.setdefaultencoding('utf8');
 logging.basicConfig(level=logging.DEBUG,
                 format='%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s %(message)s',
                 datefmt='%Y-%m-%d %H:%M:%S',
-                filename='%s/cedardeploy.log' %log_path,
+                filename='%s/cedardeploy.log' %path_log,
                 filemode='a')
 
 
@@ -101,6 +101,7 @@ def del_project():
         project = request.form.get('project', 'null')
         if project == 'null':
             raise Exception('ERROR: project null')
+        DIR = getdir(project)
         ones = serverinfo.query.filter(serverinfo.project_name == project).all()
         if len(ones) != 0:
             raise Exception('ERROR: Please delete the host.')
@@ -108,7 +109,7 @@ def del_project():
         serverinfo.query.filter(serverinfo.project_name == project).delete()
         projectinfo.query.filter(projectinfo.project_name == project).delete()
         project_config.query.filter(project_config.project_name == project).delete()
-        os.popen('mv %s/%s %s/%s.%s.del' %(project_path, project, project_path, project, time.strftime('%Y%m%d_%H%M'))).read()
+        os.popen('mv %s %s.%s.del' %(DIR['git'], DIR['git'], time.strftime('%Y%m%d_%H%M'))).read()
     except Exception as err:
         R['log'] = str(err)
         R['status'] = 'fail'
@@ -170,9 +171,10 @@ def pagelist():
 @login_required
 def rmpkl():
     project = request.args.get("project","null")
-    pkl_file = '%s/deploy.%s.lock' %(lock_path, project)
+    DIR = getdir(project)
+    pklFile = '%s/deploy.%s.lock' %(DIR['lock'], project)
     try:
-        os.remove(pkl_file)
+        os.remove(pklFile)
     except:
         pass
     return json.dumps(['ok'])
@@ -185,13 +187,14 @@ def killtask():
     project = request.args.get("project","null")
     if project == "null":
        return json.dumps(['project null'])
+    DIR = getdir(project)
     shell_cmd = '''ps -eaf |grep deploy.py|grep -v grep |grep %s |awk '{print $2}' |xargs -i -t kill -9 {} ''' % (project)
     Result = shellcmd(shell_cmd)
     R['log'] = Result['log']
     R['status'] = Result['status']
-    pkl_file = '%s/deploy.%s.lock' %(lock_path, project)
+    pklFile = '%s/deploy.%s.lock' %(DIR['lock'], project)
     try:
-        os.remove(pkl_file)
+        os.remove(pklFile)
     except:
         pass
     return json.dumps(R)
@@ -203,7 +206,8 @@ def clean_git_cache():
     project = request.args.get("project","null")
     if project == "null":
         return json.dumps(['project null'])
-    project_git_path = '%s/%s' %(project_path, project)
+    DIR = getdir(project)
+    project_git_path = '%s/%s' %(DIR['git'], project)
     status = os.popen('mv -i  %s  %s.%s.clean' %(project_git_path, project_git_path,
                                                  time.strftime('%Y%m%d_%H%M'))   ).read()
     logging.info(status)
@@ -768,6 +772,8 @@ def deploy():
     host = request.form.get("client","null")
     operation = request.form.get("operation","null")
 
+    DIR = getdir(project)
+
     if operation == 'serviceUpdate':
         tag = '%s-%s' %(project.split('_')[0], time.strftime('%Y%m%d_%H-%M-%S',time.localtime( int(float(taskid)) ) ) )
     elif operation == 'serviceFallback' or operation == 'serviceFastback':
@@ -775,14 +781,14 @@ def deploy():
     else:
         tag = "null"
 
-    pkl_file = '%s/deploy.%s.lock' %(lock_path, project)
+    pklFile = '%s/deploy.%s.lock' %(DIR['lock'], project)
 
     R = {"output":"","taskid":taskid,"operation":operation,"hostlist":host,"project":project,"tag":tag,"status":"wait"}
 
     try:
         if host == "null" and project == "null" and operation == "null":
             raise Exception('ERROR: project or host or operation null')
-        if os.path.isfile(pkl_file):
+        if os.path.isfile(pklFile):
             raise Exception('WARNING: Repeat the update, Please wait')
         ones = projectinfo.query.filter(projectinfo.project_name == project ).all()
         Type = ones[0].type
@@ -797,13 +803,14 @@ def deploy():
                 raise Exception('ERROR: user not online deploy permissions')
             if operation == 'serviceUpdate' and env == "online" and group not in unlimit and project not in unlimitProject and not check_time():
                 raise Exception('ERROR: online deploy time: Working day  10:00-11:30.  14:00-17:30.  19:00-20:00')
-        online_update_file = open(pkl_file, 'wb')
+        online_update_file = open(pklFile, 'wb')
         cPickle.dump('%s %s %s' %(currentuser, operation, operating_time),online_update_file)
         online_update_file.close()
         s = os.system(   '''(cd %s/app/main/;nohup python deploy.py "%s" "%s" "%s" "%s" "%s" "%s" "%s") >>%s/%s.log 2>&1    &'''  
-                         %(sys.path[0], project, tag, taskid, host, operation, currentuser, 'reason', log_path, project) )
+                         %(sys.path[0], project, tag, taskid, host, operation, currentuser, 'reason', DIR['log'], project) )
         R['output'] = 'INFO: Please wait. %s in progress' %(operation)
-        newupdateoperation = updateoperation(taskid,  project, host, tag, operating_time, operation, currentuser, R['status'], 'commitid')
+        logPath = '%s/%s.log' %(DIR['result'], tag)
+        newupdateoperation = updateoperation(taskid,  project, host, tag, operating_time, operation, currentuser, R['status'], 'commitid', 0, logPath)
         db.session.add(newupdateoperation)
         db.session.commit()
     except Exception as err:
@@ -813,8 +820,6 @@ def deploy():
     
 
 
-
-
 @main.route("/cmdreturns", methods=["GET", "POST"])
 @login_required
 def cmdreturns():
@@ -822,12 +827,18 @@ def cmdreturns():
     if taskid == "null":
         return json.dumps([['taskid','null']])
     try:
-        ones = updatelog.query.filter(updatelog.taskid == taskid ).all()
+        ones = updateoperation.query.filter(updateoperation.taskid == taskid ).all()
+        project  = ones[0].project_name
+        status   = ones[0].status
+        progress = ones[0].progress
+        logpath  = ones[0].logpath
+        logfile  = file(logpath,'r')
+        result   = logHandle(logfile.read())
+        logfile.close()
     except:
         return json.dumps([['sql','error']])
-    rl = []
-    for i in ones:
-        rl.append([i.host, i.rtime, i.status, i.loginfo ])
+    rl = {'taskid': taskid, 'status': status, 'project': project, 'progress': progress, 'result': result }
+    logging.info(str(rl))
     return json.dumps(rl)
 
 
@@ -913,13 +924,17 @@ def lastlog():
         ones = updateoperation.query.filter( updateoperation.project_name == project, 
                                              updateoperation.status != 'wait',
                                            ).order_by(updateoperation.taskid.desc()).limit(1)
-        taskid = ones[0].taskid
-        ones = updatelog.query.filter(updatelog.taskid == taskid ).all()
+        taskid   = ones[0].taskid
+        project  = ones[0].project_name
+        status   = ones[0].status
+        progress = ones[0].progress
+        logpath  = ones[0].logpath
+        logfile  = file(logpath,'r')
+        result   = logHandle(logfile.read())
+        logfile.close()
     except:
         return json.dumps([['sql','error']])
-    rl = []
-    for i in ones:
-        rl.append([i.host, i.rtime, i.status, i.loginfo])
+    rl = {'taskid': taskid, 'status': status, 'project': project, 'progress': progress, 'result': result }
     return json.dumps(rl)
 
 
@@ -1061,10 +1076,11 @@ def lock_check():
     R = {'status':'ok', 'log':'', 'data':'', 'user':''}
     try:
         project = request.args.get('project', "null")
-        pkl_file = '%s/deploy.%s.lock' %(lock_path, project)
+        DIR = getdir(project)
+        pklFile = '%s/deploy.%s.lock' %(DIR['lock'], project)
     
-        if os.path.isfile(pkl_file):
-            lock_file = open(pkl_file,'rb')
+        if os.path.isfile(pklFile):
+            lock_file = open(pklFile,'rb')
             lock_user = cPickle.load(lock_file)
             lock_file.close()
             R['user'] = lock_user
@@ -1212,6 +1228,9 @@ def expansion():
                 time.sleep(5)
         if status != 'ok':
             raise Exception('ERROR: expansion host %s ssh fail. %s' %(host, expansionInfo))
+
+        DIR = getdir(project)
+
         pnum = "1"
         newserver = serverinfo(project, hostname, host, pnum, 'checkstatus', 'checktime', 'commitid', 'updatestatus', 'updatetime')
         db.session.add(newserver)
@@ -1226,13 +1245,10 @@ def expansion():
         if dcr != 'ok':
             raise Exception('ERROR: expansion deploy config error.  %s %s' % (expansionInfo, dcr ))
         s = os.system(   '''(nohup python %s/app/main/deploy.py "%s" "%s" "%s" "%s" "%s" "%s" "%s") >>%s/%s.log 2>&1    &'''
-                        %(sys.path[0], project, tag, taskid, host, operation, currentuser, reason, log_path, project) )
+                        %(sys.path[0], project, tag, taskid, host, operation, currentuser, reason, DIR['log'], project) )
     except Exception as err:
         R['output'] = str(err)
         R['status'] = 'fail'
-        newupdatelog = updatelog(taskid,  project, host, tag, rtime, R['status'], R['output'])
-        db.session.add(newupdatelog)
-        db.session.commit()
         headers = {'Content-Type':'application/json'}
         content = "%s\n%s: %s %s\nHost: %s\nReason: %s" %(rtime, project, operation, R['status'], host, reason)
 
@@ -1247,7 +1263,8 @@ def expansion():
         except Exception as err:
             logging.error(str(err))
     try:
-        newupdateoperation = updateoperation(taskid, project, host, tag, rtime, operation, currentuser, R['status'], 'commitid')
+        logPath = '%s/%s.log' %(DIR['result'], project)
+        newupdateoperation = updateoperation(taskid, project, host, tag, rtime, operation, currentuser, R['status'], 'commitid', 0, logPath)
         db.session.add(newupdateoperation)
         db.session.commit()
     except Exception as err:
