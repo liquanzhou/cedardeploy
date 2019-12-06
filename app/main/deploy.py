@@ -121,16 +121,16 @@ class Deploy:
         self.sreRobot       = sreRobot
         self.autotestURL    = autotestURL
         self.autolist       = autolist
-        self.hostPath       = remote_host_path
+        self.hostPath       = remote_host_path.rstrip('/') + '/'
 
         print(self.autolist)
 
 
-        self.dir_path_git    = path_git    + project
-        self.dir_path_log    = path_log    + project
-        self.dir_path_lock   = path_lock   + project
-        self.dir_path_conf   = path_conf   + project
-        self.dir_path_result = path_result + project
+        self.dir_path_git    = path_git.rstrip('/') + '/'    + project
+        self.dir_path_log    = path_log.rstrip('/') + '/'    + project
+        self.dir_path_lock   = path_lock.rstrip('/') + '/'   + project
+        self.dir_path_conf   = path_conf.rstrip('/') + '/'   + project
+        self.dir_path_result = path_result.rstrip('/') + '/' + project
 
 
         self.pklFile = '%s/deploy.%s.lock' %(self.dir_path_lock, project)

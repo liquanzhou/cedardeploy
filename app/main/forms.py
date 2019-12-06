@@ -49,11 +49,11 @@ def writefile(path, content):
 
 def getdir(project):
     DIR = {}
-    dir_path_git    = path_git    + project
-    dir_path_log    = path_log    + project
-    dir_path_lock   = path_lock   + project
-    dir_path_conf   = path_conf   + project
-    dir_path_result = path_result + project
+    dir_path_git    = path_git.rstrip('/') + '/'    + project
+    dir_path_log    = path_log.rstrip('/') + '/'    + project
+    dir_path_lock   = path_lock.rstrip('/') + '/'   + project
+    dir_path_conf   = path_conf.rstrip('/') + '/'   + project
+    dir_path_result = path_result.rstrip('/') + '/' + project
 
     shell_cmd = '''mkdir -p %s %s %s %s %s ''' %(dir_path_git, dir_path_log, dir_path_lock, dir_path_conf, dir_path_result)
     Result = shellcmd(shell_cmd)
