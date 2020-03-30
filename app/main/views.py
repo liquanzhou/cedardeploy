@@ -602,15 +602,6 @@ def add_project():
             supervisor = catalina_sh
             config = server_xml
     
-        supervisor = supervisor.replace('$USER$',                exec_user
-                              ).replace('$HOST_PATH$',           remote_host_path
-                              ).replace('$port$',                port
-                              ).replace('$project$',             project
-                              ).replace('$environment$',         environment
-                              ).replace('$supervisor_log_path$', supervisor_log_path
-                              ).replace('$ajpport$',             str(int(port)-105)
-                              ).replace('$shutdownport$',        str(int(port)-75)  )
-    
         configadd = project_config(  project_name = project_name, 
                                      make         = '',
                                      supervisor   = supervisor,
@@ -642,13 +633,10 @@ def add_host():
         host         = request.form.get('host',         "null").strip()
         pnum         = request.form.get('pnum',         "1"   ).strip()
         env          = request.form.get('env',          ""    ).strip()
-        if project == "null" or host == "null" or project == "" or host == "":
-            raise Exception('ERROR: parameter error')
-        ones1 = serverinfo.query.filter(serverinfo.project_name == project, serverinfo.ip == host).all()
-        if len(ones1) != 0:
-            raise Exception('ERROR: host exist.')
         if pnum == '':
             pnum = '1'
+        if project == "null" or host == "null" or project == "" or host == "":
+            raise Exception('ERROR: parameter error')
 
         if hostname == '' or hostname == 'null':
             Result = getHostname(host)
@@ -657,14 +645,27 @@ def add_host():
             else:
                 raise Exception('ERROR: get hostname error')
     
+        ones1 = serverinfo.query.filter(serverinfo.project_name == project, serverinfo.ip == host).all()
+        if len(ones1) != 0:
+            raise Exception('ERROR: host exist.')
+    
+        ones = projectinfo.query.filter(projectinfo.project_name == project ).first()
+        if int(ones.port) >3000:
+            t = set(range(int(ones.port), int(ones.port) + int(pnum)))
+            ones3 = serverinfo.query.filter(serverinfo.ip == host).all()
+            for ones3line in ones3:
+                ones4 = projectinfo.query.filter(projectinfo.project_name == ones3line.project_name ).first()
+                s = set(range(int(ones4.port), int(ones4.port) + int(ones3line.pnum) ))
+                repeatport = s.intersection(t)
+                if repeatport:
+                    raise Exception('ERROR: host port %s %s exist conflict.' %(host, str(list(repeatport)) ) )
+    
         newserver = serverinfo(project, hostname, host, pnum, env, 'checkstatus', 'checktime', 'commitid', 'updatestatus', 'updatetime')
         db.session.add(newserver)
         db.session.commit()
-    
-        ones = projectinfo.query.filter(projectinfo.project_name == project ).first()
         ones1 = serverinfo.query.filter(serverinfo.project_name == project, serverinfo.ip == host).first()
         ones2 = project_config.query.filter(project_config.project_name == project ).first()
-    
+
         hir = hostInit(project, host, ones.type)
         if hir != 'ok':
             raise Exception(hir)

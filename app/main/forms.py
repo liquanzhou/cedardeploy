@@ -91,8 +91,22 @@ def deployConfig(project, host, ones, ones1, ones2):
         if ones.type in supervisord_list:
             DIR = getdir(project)
 
-            # supervisor
-            supervisor_conf = ones2.supervisor.replace('$ip$',host).replace('$pnum$',ones1.pnum).replace('$env$',ones1.env)
+            supervisor_conf = ones2.supervisor
+
+            variable = {
+                '$USER$':                exec_user,
+                '$HOST_PATH$':           remote_host_path,
+                '$environment$':         ones.environment,
+                '$project$':             ones.project,
+                '$ip$':                  host,
+                '$pnum$':                ones1.pnum,
+                '$env$':                 ones1.env,
+                '$port$':                str(ones.port),
+                '$ajpport$':             str(int(ones.port)-105),
+                '$shutdownport$':        str(int(ones.port)-75)
+            }
+            for n, v in variable.items():
+                supervisor_conf = supervisor_conf.replace(n, v)
             supervisor_conf_path = '%s/%s_%s_supervisor.conf' %(DIR['conf'], project, host)
             remote_supervisor_conf_path = '%s@%s:%s/%s.conf' %(exec_user, host, supervisor_conf_dir, project)
             writefile(supervisor_conf_path, supervisor_conf)
@@ -185,7 +199,7 @@ numprocs_start=$port$
 supervisor_go_conf = '''[program:$environment$_$project$]
 environment=HOME=/home/$USER$,PROJECT_ENV="$environment$",PROJECT_NAME=$project$,PROJECT_PORT=$port$,PROJECT_PATH="$HOST_PATH$$environment$_$project$/",PRODUCT_ENV="",$env$
 directory=$HOST_PATH$$environment$_$project$/
-command=$HOST_PATH$$environment$_$project$/bin/$project$ -f $HOST_PATH$$environment$_$project$/etc/$project-env$.conf
+command=$HOST_PATH$$environment$_$project$/bin/$project$ -f $HOST_PATH$$environment$_$project$/etc/$environment$_$project$.conf
 process_name = %(process_num)d
 user=$USER$
 startretries=5
