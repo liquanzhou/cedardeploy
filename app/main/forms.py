@@ -217,7 +217,7 @@ loglevel=info
 supervisor_sh_conf = '''[program:$environment$_$project$]
 environment=HOME=/home/$USER$,PROJECT_ENV="$environment$",PROJECT_NAME=$project$,PROJECT_PORT=$port$,PROJECT_PATH="$HOST_PATH$$environment$_$project$/",PRODUCT_ENV="",$env$
 directory=$HOST_PATH$$environment$_$project$/
-command=/bin/bash $HOST_PATH$$environment$_$project$/deploy_start.sh
+command=/bin/bash $HOST_PATH$$environment$_$project$/deploy_start.sh --port=%(process_num)d
 process_name = %(process_num)d
 user=$USER$
 startretries=5
@@ -229,6 +229,8 @@ stdout_logfile=$supervisor_log_path$/%(program_name)s.log
 stdout_logfile_maxbytes=500MB
 stdout_logfile_backups=10
 loglevel=info
+numprocs = $pnum$
+numprocs_start=$port$
 
 '''
 
