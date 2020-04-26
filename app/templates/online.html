@@ -25,23 +25,33 @@
         <li class="active">上线</li>
     </ol>
 
+
     <div class="projectinfo" style="height:auto;border:1px solid #ccc;padding-left:10px;">
         <div style="float:left" id="project_button"></div>
-        <div class="add_project_div" id="project_div"></div>
         <br>
-        <br>
-    </div>
-    <br>
-    <div class="confinfo" style="height:auto;border:1px solid #ccc;padding-left:10px;">
-        <div style="float:left" id="config_button"></div>
-        <div style="float:right" id="config_button_div"></div>
+        <div class="add_project_div" id="project_div"  status="close"></div>
         <br>
         <div class="config_div" id="config_div"  status="close"></div>
         <br>
+        <div>
+            <div style="float:left" id="add_host_div"></div>
+            <div style="float:right" id="edit_host_div"></div>
+        </div>
         <br>
+        <div style="width:auto;height:auto;">
+            <div class="addListTable" id="add_host_table"></div>
+            <div class="hostListTable" id="hostManage"></div>
+        </div>
     </div>
+
     <br>
+    <br>
+
+
     <div class="hostList" style="height:auto;border:1px solid #ccc;padding-left:10px;overflow-x:scroll;white-space:nowrap;">
+        <div style="float:left" id="onlineManage"></div>
+        <br>
+        <br>
         <div  style="height:50px;">
             <div style="float:left;width:260px;">
                 <a href="javascript:;" onclick='selectAll("onlinehost");'>全选</a>
@@ -50,16 +60,16 @@
                 其他操作:
             </div>
             <div style="float:left;width:90px;">
-                 <button id="restart_submit" class="btn btn-danger btn-sm" >重启</button>
+                 <button id="restart_submit" class="btn btn-info btn-sm" >重启</button>
             </div>
             <div style="float:left;width:90px;">
-                 <button id="rmlock" class="btn btn-danger btn-sm" >清除锁</button>
+                 <button id="rmlock" class="btn btn-info btn-sm" >清除锁</button>
             </div>
             <div style="float:left;width:130px;">
-                 <button id="killtask" class="btn btn-danger btn-sm" >终止发布任务</button>
+                 <button id="killtask" class="btn btn-info btn-sm" >终止发布任务</button>
             </div>
             <div style="float:left;width:130px;">
-                 <button id="clean_git_cache" class="btn btn-danger btn-sm" >清除git缓存</button>
+                 <button id="clean_git_cache" class="btn btn-info btn-sm" >清除git缓存</button>
             </div>
         </div>
 

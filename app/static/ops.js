@@ -5,19 +5,6 @@ var timeout1 ;
 var timeout2 ;
 
 
-$("body").on('click', '#open_add_project', function(){
-    var status = $('#project_div').attr('status')
-    if (status == 'close') {
-        push_add_project_table()
-        $('#project_div').attr('status','open')
-        $('#add_host_table').html("");
-        $('#host').html("");
-    }else{
-        $('#project_div').html("");
-        $('#project_div').attr('status','close');
-    }
-});
-
 $("body").on('click', '#del_project', function(){
     var project = $('#ipt_project').val()
     if (confirm('请确认删除项目及关联主机信息: '+project)) {
@@ -28,9 +15,9 @@ $("body").on('click', '#del_project', function(){
             alert("删除项目 "+project+"  status: "+data.status+" log: "+data.log);
             if (data.status == 'ok') {
                 project_list();
-
                 $('#project_div').html("");
                 $('#add_host_table').html("");
+                $('#hostManage').html("");
                 $('#host').html("");
             }
         }, 'json');
@@ -45,13 +32,12 @@ function push_add_host_table(p){
     }
     $.getJSON('/project_info', param, function(data){
         var htm=['<table class="table table-hover">'];
-        htm.push('<thead><tr><th>hostname</th><th >ip</th><th >pnum</th><th >env</th><th >add host</th></thead>');
+        htm.push('<thead><tr><th>ip(*必填)</th><th >pnum(进程数)</th><th>env(进程环境变量)</th><th>addhost</th></thead>');
         htm.push('<tr>');
-        htm.push('<td>'+'<input type="text" class="form-control" id="add_hostname" placeholder="host-01" value="">'+'</td>');
         htm.push('<td>'+'<input type="text" class="form-control" id="add_ip" placeholder="10.10.10.10" value="">'+'</td>');
-        htm.push('<td>'+'<input type="text" class="form-control" id="add_pnum" placeholder="" value="1">'+'</td>');
-        htm.push('<td>'+'<input type="text" class="form-control" id="add_env" placeholder="" value="">'+'</td>');
-        htm.push('<td><button id="add_host" class="btn btn-small btn-success" project="'+project+'" >确认添加</button></td>');
+        htm.push('<td>'+'<input type="text" class="form-control" id="add_pnum" style="width:60px;" placeholder="" value="1">'+'</td>');
+        htm.push('<td>'+'<input type="text" class="form-control" id="add_env" placeholder="a=1,b=/data/" value="">'+'</td>');
+        htm.push('<td><button id="add_host" class="btn btn-small btn-success" project="'+project+'" >添加主机</button></td>');
         htm.push('</tr>');
         htm.push('</table>');
         $('#add_host_table').html(htm.join(''));
@@ -59,44 +45,21 @@ function push_add_host_table(p){
 };
 
 
-$("body").on('click', '#open_add_host', function(){
-    var project = $('#open_add_host').attr('project')
-    var status = $('#open_add_host').attr('status')
-    if (status == 'close') {
-        push_add_host_table(project)
-        $('#open_add_host').attr('status','open')
-    }else{
-        $('#add_host_table').html("");
-        $('#open_add_host').attr('status','close')
-    }
-});
-
-
-$("body").on('click', '#open_edit_host', function(){
-    var project = $('#open_edit_host').attr('project')
-    var status = $('#open_add_host').attr('status')
-    if (status == 'close') {
-        push_edit_host_table(project)
-        $('#open_add_host').attr('status','open')
-    }else{
-        $('#add_host_table').html("");
-        $('#open_add_host').attr('status','close')
-    }
-});
-
-
-$("body").on('click', '#add_project', function(){
+$("body").on('click', '#add_newproject', function(){
     if (confirm('请确认项目信息')) {
-        var add_business = $('#add_business').val()
+        var add_group = $('#add_group').val()
         var add_environment = $('#add_environment').val()
-        var add_project = $('#add_nproject').val()
-        var add_type = $('#add_type').val()
+        var add_p = $('#add_p').val()
+        var add_codetype = $('#add_codetype').val()
         var add_port = $('#add_port').val()
         var add_git = $('#add_git').val()
         var add_branch = $('#add_branch').val()
+        var add_make = $('#add_make').val()
+        var add_config = $('#add_config').val()
+        var add_remarks = $('#add_remarks').val()
 
-        if(!add_business ){
-            alert('business null');
+        if(!add_group ){
+            alert('group null');
             return false;
         }
 
@@ -108,11 +71,11 @@ $("body").on('click', '#add_project', function(){
             alert('git branch null');
             return false;
         }
-        if(!add_project ){
+        if(!add_p ){
             alert('project null');
             return false;
         }
-        if(!add_type){
+        if(!add_codetype){
             alert('type null');
             return false;
         }
@@ -120,30 +83,27 @@ $("body").on('click', '#add_project', function(){
             alert('git addr null');
             return false;
         }
-        if(add_type == 'nodejs'){
-            if(add_port < 3000 || add_port >5000){
-                alert('python port [3000 - 5000]');
-                return false;
-            }
-        }
 
         var param = {
-            business:add_business,
+            group: add_group,
             environment: add_environment,
-            project: add_project,
-            type: add_type,
+            p: add_p,
+            codetype: add_codetype,
             port: add_port,
             git: add_git,
-            branch: add_branch
+            branch: add_branch,
+            make: add_make,
+            config: add_config,
+            remarks: add_remarks
         }
 
         $.post('/add_project', param, function(data){
             alert(data.status+"  "+data.log);
-            if(data.status == 'ok'){
-                $('#project_div').html("");
-                $('#project_div').attr('status','close')
-                project_list();
-            }
+            //if(data.status == 'ok'){
+                //$('#project_div').html("");
+                //$('#project_div').attr('status','close')
+                //project_list();
+            //}
         }, 'json');
     };
 });
@@ -152,13 +112,22 @@ $("body").on('click', '#add_project', function(){
 
 $("body").on('click', '#update_project', function(){
     if (confirm('请确认项目信息')) {
-        var add_business    = $('#add_business').val()
-        var add_environment = $('#add_environment').val()
-        var add_project     = $('#add_nproject').val()
-        var add_type        = $('#add_type').val()
-        var add_port        = $('#add_port').val()
-        var add_git         = $('#add_git').val()
-        var add_branch      = $('#add_branch').val()
+        var add_project       = $('#add_project').val()
+        var add_group         = $('#add_group').val()
+        var add_environment   = $('#add_environment').val()
+        var add_p             = $('#add_p').val()
+        var add_codetype      = $('#add_codetype').val()
+        var add_port          = $('#add_port').val()
+        var add_git           = $('#add_git').val()
+        var add_branch        = $('#add_branch').val()
+        var add_checkport     = $('#add_checkport').val()
+        var add_checkhttp     = $('#add_checkhttp').val()
+        var add_httpurl       = $('#add_httpurl').val()
+        var add_httpcode      = $('#add_httpcode').val()
+        var add_make          = $('#add_make').val()
+        var add_supervisor    = $('#add_supervisor').val()
+        var add_config        = $('#add_config').val()
+        var add_remarks       = $('#add_remarks').val()
 
         if(!add_environment){
             alert('environment null');
@@ -181,22 +150,31 @@ $("body").on('click', '#update_project', function(){
             return false;
         }
         var param = {
-            business: add_business,
-            environment: add_environment,
             project: add_project,
-            type: add_type,
+            group: add_group,
+            environment: add_environment,
+            p: add_p,
+            codetype: add_codetype,
             port: add_port,
             git: add_git,
             branch: add_branch,
+            checkport: checkport,
+            checkhttp: checkhttp,
+            httpurl: httpurl,
+            httpcode: httpcode,
+            make: make,
+            supervisor: supervisor,
+            config: config,
+            remarks: remarks
         }
 
         $.post('/update_project', param, function(data){
             alert(data.status+"  "+data.log);
-            if(data.status == 'ok'){
-                $('#project_div').html("");
-                $('#project_div').attr('status','close')
-                project_list();
-            }
+            //if(data.status == 'ok'){
+            //    $('#project_div').html("");
+            //    $('#project_div').attr('status','close')
+            //    project_list();
+            //}
         }, 'json');
     };
 });
@@ -210,8 +188,8 @@ function push_add_project_table(){
     var htm=['<table class="table table-hover ">'];
 
     htm.push('<tr>');
-    htm.push('<td width="120" align="right">Business line:</td>');
-    htm.push('<td>'+'<select class="form-control" id="add_business">');
+    htm.push('<td width="120" align="right">group:</td>');
+    htm.push('<td>'+'<select class="form-control" id="add_group">');
     for(var i=0,len=data.length; i<len; i++){
         htm.push('<option value="'+data[i]+'">'+data[i]+'</option>');
     }
@@ -224,13 +202,13 @@ function push_add_project_table(){
     htm.push('</tr>');
 
     htm.push('<tr>');
-    htm.push('<td width="120" align="right">project:</td>');
-    htm.push('<td>'+'<input type="text" class="form-control" id="add_nproject" placeholder="api" value="">'+'</td>');
+    htm.push('<td width="120" align="right">projectName:</td>');
+    htm.push('<td>'+'<input type="text" class="form-control" id="add_p" placeholder="post" value="">'+'</td>');
     htm.push('</tr>');
 
     htm.push('<tr>');
-    htm.push('<td width="120" align="right">type:</td>');
-    htm.push('<td>'+'<select class="form-control" id="add_type"><option value="golang" selected = "selected">golang</option><option value="go">go-bin</option><option value="php">php</option><option value="python">python</option><option value="static">static</option><option value="jobs">jobs</option><option value="nodejs">nodejs</option><option value="sh">sh</option></select>'+'</td>');
+    htm.push('<td width="120" align="right">codeType:</td>');
+    htm.push('<td>'+'<select class="form-control" id="add_codetype"><option value="golang" selected = "selected">golang</option><option value="php">php</option><option value="python">python</option><option value="python36">python36</option><option value="static">static</option><option value="jobs">jobs</option><option value="nodejs">nodejs</option><option value="sh">sh</option></select>'+'</td>');
     htm.push('</tr>');
 
     htm.push('<tr>');
@@ -249,8 +227,23 @@ function push_add_project_table(){
     htm.push('</tr>');
 
     htm.push('<tr>');
+    htm.push('<td width="120" align="right">make:</td>');
+    htm.push('<td>'+'<textarea id="add_make" rows="5" cols="100"  >'+''+'</textarea>'+'</td>');
+    htm.push('</tr>');
+
+    htm.push('<tr>');
+    htm.push('<td width="120" align="right">config:</td>');
+    htm.push('<td>'+'<textarea id="add_config" rows="5" cols="100"  >'+''+'</textarea>'+'</td>');
+    htm.push('</tr>');
+
+    htm.push('<tr>');
+    htm.push('<td width="120" align="right">remarks:</td>');
+    htm.push('<td>'+'<textarea id="add_remarks" rows="5" cols="100"  >'+''+'</textarea>'+'</td>');
+    htm.push('</tr>');
+
+    htm.push('<tr>');
     htm.push('<td></td>');
-    htm.push('<td><button id="add_project" class="btn btn-small btn-success" >确认添加</button></td>');
+    htm.push('<td><button id="add_newproject" class="btn btn-small btn-success" >添加新项目</button></td>');
     htm.push('</tr>');
     htm.push('</table>');
 
@@ -283,7 +276,7 @@ $("body").on('click', '#add_host', function(){
 });
 
 
-$("body").on('click', '#add_group', function(){
+$("body").on('click', '#add_newgroup', function(){
     if (confirm('确认提交？')) {
         var addgroupname = $('#addgroupname').val()
         var param = {
@@ -420,26 +413,11 @@ $("body").on('click', '#del_host', function(){
 });
 
 
-$("body").on('click', '#deploy_config', function(){
-    var deploy_config_host = $(this).attr('host')
-    var deploy_config_project = $(this).attr('project')
-    if (confirm('警告: supervisor配置文件改动,更新或重启生效  '+deploy_config_host)) {
-        var param = {
-            host:    deploy_config_host,
-            project: deploy_config_project,
-        }
-        $.post('/deploy_config', param, function(data){
-            host_list_table(deploy_config_project)
-            alert('deploy config '+deploy_config_host+' status: '+data['status']);
-        }, 'json');
-    }
-});
-
 
 $("#back_submit").on('click', function(){
     var  p = $('#ipt_project').val()
     if (p == undefined){
-        alert('project_name null');
+        alert('project null');
         return false;
     }
     var fastback = $('#fastback').val()
@@ -492,7 +470,7 @@ $("body").on('click', '#btn_submit', function(){
         });
     }
     else{
-        alert('project_name null');
+        alert('project null');
     };
 });
 
@@ -515,7 +493,7 @@ $("#restart_submit").on('click', function(){
         });
     }
     else{
-        alert('project_name null');
+        alert('project null');
     };
 });
 
@@ -753,7 +731,7 @@ function project_info(p){
             var htm=['<table class="table table-hover">'];
 
             htm.push('<tr>');
-            htm.push('<td width="120" align="right">Business line:</td>');
+            htm.push('<td width="120" align="right">group:</td>');
             htm.push('<td>'+data[0]+'</td>');
             htm.push('</tr>');
 
@@ -798,87 +776,6 @@ function project_info(p){
 };
 
 
-function config_info(p){
-    var status = $('#config_div').attr('status')
-    if (status == 'close') {
-        var param = {
-            project: p
-        }
-        $.getJSON('/config_info', param, function(data){
-            var htm=['<table class="table table-hover">'];
-            htm.push('<tr>');
-            htm.push('<td colspan="2">'+'ip = $ip$'+'</td>');
-            htm.push('</tr>');
-            htm.push('<tr>');
-            htm.push('<td colspan="2">'+'numprocs = $pnum$'+'</td>');
-            htm.push('</tr>');
-
-            htm.push('<tr>');
-            htm.push('<td width="120" align="right">'+data[0][0]+':</td>');
-            htm.push('<td><textarea id="'+data[0][0]+'" rows="5" cols="100"  readonly="readonly" >'+data[0][1]+'</textarea></td>');
-            htm.push('</tr>');
-
-            htm.push('<tr>');
-            htm.push('<td width="120" align="right">'+data[1][0]+':</td>');
-            htm.push('<td><textarea id="'+data[1][0]+'" rows="5" cols="100"  readonly="readonly" >'+data[1][1]+'</textarea></td>');
-            htm.push('</tr>');
-
-            htm.push('<tr>');
-            htm.push('<td width="120" align="right">'+data[2][0]+':</td>');
-            htm.push('<td><textarea id="'+data[2][0]+'" rows="5" cols="100"  readonly="readonly" >'+data[2][1]+'</textarea></td>');
-            htm.push('</tr>');
-
-            htm.push('<tr>');
-            htm.push('<td width="120" align="right">'+data[3][0]+':</td>');
-            htm.push('<td><textarea id="'+data[3][0]+'" rows="5" cols="100"  readonly="readonly" >'+data[3][1]+'</textarea></td>');
-            htm.push('</tr>');
-
-            htm.push('<tr>');
-            htm.push('<td width="120" align="right">'+data[4][0]+':</td>');
-            htm.push('<td><textarea id="'+data[4][0]+'" rows="5" cols="100"  readonly="readonly" >'+data[4][1]+'</textarea></td>');
-            htm.push('</tr>');
-
-            htm.push('<tr>');
-            htm.push('<td width="120" align="right">'+data[5][0]+':</td>');
-            htm.push('<td><textarea id="'+data[5][0]+'" rows="5" cols="100"  readonly="readonly" >'+data[5][1]+'</textarea></td>');
-            htm.push('</tr>');
-
-            htm.push('<tr>');
-            htm.push('<td width="120" align="right">'+data[6][0]+':</td>');
-            htm.push('<td>'+data[6][1]+'</td>');
-            htm.push('</tr>');
-
-            htm.push('<tr>');
-            htm.push('<td width="120" align="right">'+data[7][0]+':</td>');
-            htm.push('<td>'+data[7][1]+'</td>');
-            htm.push('</tr>');
-
-            htm.push('<tr>');
-            htm.push('<td width="120" align="right">'+data[8][0]+':</td>');
-            htm.push('<td>'+data[8][1]+'</td>');
-            htm.push('</tr>');
-
-            htm.push('<tr>');
-            htm.push('<td width="120" align="right">'+data[9][0]+':</td>');
-            htm.push('<td>'+data[9][1]+'</td>');
-            htm.push('</tr>');
-
-            htm.push('<tr>');
-            htm.push('<td width="120" align="right">'+data[10][0]+':</td>');
-            htm.push('<td>'+data[10][1]+'</td>');
-            htm.push('</tr>');
-
-            htm.push('</table>');
-            $('#config_div').html(htm.join(''));
-        });
-        $('#config_div').attr('status','open')
-    }else{
-        $('#config_div').html("");
-        $('#config_div').attr('status','close')
-    }
-};
-
-
 function host_list_table(p){
     var param={ project:p};
     $.getJSON('/hostlist', param,  function(data){
@@ -914,32 +811,42 @@ function host_list_table(p){
                 }
             }
 
-            if($('#leftDiv').attr('path') == "project_admin"){
-                htm.push('<thead><tr><th>hostname</th><th>ip</th><th>pnum</th><th>ENV</th><th>status</th><th>DeployConf</th><th>save</th><th>delete</th></tr></thead>');
-                for(var i=0,len=data.length; i<len; i++){
-                    if(data[i][1] != "essExpansion"){
-                        htm.push('<tr>');
-                        htm.push('<td>'+'<input type="text" class="form-control" id="hostname'+i+'" placeholder="hostname" value="'+data[i][1]+'">'+'</td>');
-                        htm.push('<td>'+'<input type="text" readOnly="true" class="form-control" id="hostip'+i+'" placeholder="data[i][0]" value="'+data[i][0]+'">'+'</td>');
-                        htm.push('<td>'+'<input type="text" class="form-control" id="pnum'+i+'" placeholder="pnum" value="'+data[i][4]+'">'+'</td>');
-                        htm.push('<td>'+'<input type="text" class="form-control" id="env'+i+'" placeholder="a=1,b=2" value="'+data[i][5]+'">'+'</td>');
-                        if(data[i][6] == "RUNNING"){
-                            htm.push('<td>'+'<font color="Lime">'+data[i][6]+'</font>'+'</td>');
-                        } else if(data[i][6] == "SSHOK"){
-                            htm.push('<td>'+'<font color="#FF9900">'+data[i][6]+'</font>'+'</td>');
-                        }else{
-                            htm.push('<td>'+'<font color="red">'+data[i][6]+'</font>'+'</td>');
-                        }
-                        htm.push('<td><button id="deploy_config" host="'+data[i][0]+'" class="btn btn-sm btn-danger" project="'+p+'" >更新supervisor</button></td>');
-                        htm.push('<td><button id="update_host" host="'+data[i][0]+'" i="'+i+'" class="btn btn-sm btn-danger" project="'+p+'" >保存</button></td>');
-                        htm.push('<td><button id="del_host" host="'+data[i][0]+'" class="btn btn-sm btn-danger" project="'+p+'" >delete</button></td>');
-                        htm.push('</tr>');
+        }
+        htm.push('</table>');
+        $('#host').html(htm.join(''));
+    });
+};
+
+
+function hostmanage_list_table(p){
+    var param={ project:p};
+    $.getJSON('/hostlist', param,  function(data){
+        var htm=['<table class="table table-hover">'];
+        if (data!='' && data!=undefined && data!=null){
+
+            htm.push('<thead><tr><th>hostname</th><th>ip</th><th>pnum</th><th>ENV</th><th>status</th><th>save</th><th>delete</th></tr></thead>');
+            for(var i=0,len=data.length; i<len; i++){
+                if(data[i][1] != "essExpansion"){
+                    htm.push('<tr>');
+                    htm.push('<td>'+'<input type="text" class="form-control" id="hostname'+i+'" placeholder="hostname" value="'+data[i][1]+'">'+'</td>');
+                    htm.push('<td>'+'<input type="text" readOnly="true" class="form-control" id="hostip'+i+'" placeholder="data[i][0]" value="'+data[i][0]+'">'+'</td>');
+                    htm.push('<td>'+'<input type="text" class="form-control" id="pnum'+i+'" placeholder="pnum" style="width:60px;" value="'+data[i][4]+'">'+'</td>');
+                    htm.push('<td>'+'<input type="text" class="form-control" id="env'+i+'" placeholder="a=1,b=2" value="'+data[i][5]+'">'+'</td>');
+                    if(data[i][6] == "RUNNING"){
+                        htm.push('<td>'+'<font color="Lime">'+data[i][6]+'</font>'+'</td>');
+                    } else if(data[i][6] == "SSHOK"){
+                        htm.push('<td>'+'<font color="#FF9900">'+data[i][6]+'</font>'+'</td>');
+                    }else{
+                        htm.push('<td>'+'<font color="red">'+data[i][6]+'</font>'+'</td>');
                     }
+                    htm.push('<td><button id="update_host" host="'+data[i][0]+'" i="'+i+'" class="btn btn-sm btn-info" project="'+p+'" >保存</button></td>');
+                    htm.push('<td><button id="del_host" host="'+data[i][0]+'" class="btn btn-sm btn-danger" project="'+p+'" >删除主机</button></td>');
+                    htm.push('</tr>');
                 }
             }
         }
         htm.push('</table>');
-        $('#host').html(htm.join(''));
+        $('#hostManage').html(htm.join(''));
     });
 };
 
@@ -972,20 +879,18 @@ function push_edit_host_table(p){
     $.getJSON('/hostlist', param,  function(data){
         var htm=['<table class="table table-hover">'];
 
-        if($('#leftDiv').attr('path') == "project_admin"){
-            htm.push('<thead><tr><th>hostname</th><th>ip</th><th>pnum</th><th>project</th></tr></thead>');
-            $.each(data, function(ip, data){
-                if(data[0] != "essExpansion"){
-                    htm.push('<tr>');
-                    htm.push('<td>'+'<input type="text" class="form-control" id="add_git" placeholder="hostname" value="'+data[0]+'">'+'</td>');
-                    htm.push('<td>'+'<input type="text" readOnly="true" class="form-control" id="add_git" placeholder="ip" value="'+ip+'">'+'</td>');
-                    htm.push('<td>'+'<input type="text" class="form-control" id="add_git" placeholder="pnum" value="'+data[1]+'">'+'</td>');
-                    htm.push('<td>'+'<input type="text" readOnly="true" class="form-control" id="add_git" placeholder="project" value="'+data[2]+'">'+'</td>');
-                    htm.push('</tr>');
-                }
-            })
-            htm.push('<tr><td><button id="edit_host" class="btn btn-small btn-danger" project="'+p+'" >更新主机信息</button></td></tr>');
-        }
+        htm.push('<thead><tr><th>hostname</th><th>ip</th><th>pnum</th><th>project</th></tr></thead>');
+        $.each(data, function(ip, data){
+            if(data[0] != "essExpansion"){
+                htm.push('<tr>');
+                htm.push('<td>'+'<input type="text" class="form-control" id="add_git" placeholder="hostname" value="'+data[0]+'">'+'</td>');
+                htm.push('<td>'+'<input type="text" readOnly="true" class="form-control" id="add_git" placeholder="ip" value="'+ip+'">'+'</td>');
+                htm.push('<td>'+'<input type="text" class="form-control" id="add_git" placeholder="pnum" value="'+data[1]+'">'+'</td>');
+                htm.push('<td>'+'<input type="text" readOnly="true" class="form-control" id="add_git" placeholder="project" value="'+data[2]+'">'+'</td>');
+                htm.push('</tr>');
+            }
+        })
+        htm.push('<tr><td><button id="edit_host" class="btn btn-small btn-danger" project="'+p+'" >更新主机信息</button></td></tr>');
         htm.push('</table>');
         $('#add_host_table').html(htm.join(''));
 
@@ -1050,11 +955,11 @@ function host_list_push(p){
     var htm1=['<input type="hidden" name="project" id="ipt_project" value="'+p+'" />'];
     $('#select_project').html(htm1.join(''));
 
-    var htm3=['<a href="javascript:;" class="project_info_table" status="close" onclick=\'project_info("'+p+'");\'>项目信息:    '+p+'</a>'];
+    var htm3=['<a href="javascript:;" class="project_info_table" status="close" onclick=\'push_project_manage("'+p+'");\'>项目管理:    '+p+'</a>'];
     $('#project_button').html(htm3.join(''));
 
-    var htm4=['<a href="javascript:;" class="config_info_table" status="close" onclick=\'config_info("'+p+'");\'>配置信息:    '+p+'</a>'];
-    $('#config_button').html(htm4.join(''));
+    var htm6=['<p>'+'上线管理:    '+p+'</p>'];
+    $('#onlineManage').html(htm6.join(''));
 
     if(p.split("_",1) == "online"){
         var htm5=['<button id="btn_submit" class="btn btn-warning" type="button">'+p.split("_",1)+'更新</button>'];
@@ -1068,6 +973,8 @@ function host_list_push(p){
     $('#cnt').html("");
     $('#resDiv').html("");
     $('#add_host_table').html("");
+    $('#hostManage').html("");
+    $('#hostManage').attr('status','close')
     $('#project_div').html("");
     $('#project_div').attr('status','close');
     $('#config_div').html("");
@@ -1105,12 +1012,10 @@ $("body").on('click', '.host_list_admin', function(){
     $('#cnt').html("");
     $('#resDiv').html("");
     $('#add_host_table').html("");
+    $('#hostManage').html("");
+    $('#hostManage').attr('status','close')
     $('#project_div').html("");
     $('#project_div').attr('status','close');
-    $('#config_div').html("");
-    $('#config_div').attr('status','close');
-    project_button_div();
-    config_button_div();
     push_add_host_table(p)
 });
 
@@ -1172,7 +1077,7 @@ function hostlisterrweb(){
 
     $.getJSON('/hostlisterr', function(data){
         var htm=['<table class="table table-bordered">'];
-        htm.push('<tr><th>project_name</th><th>hostname</th><th>ip</th><th>status</th></tr>');
+        htm.push('<tr><th>project</th><th>hostname</th><th>ip</th><th>status</th></tr>');
 
         for(var i=0,len=data.length; i<len; i++){
             var DataTime = getLocalTime(data[i][1])
@@ -1351,92 +1256,172 @@ function getLocalTime(nS) {
 
 
 
-function project_button_div(){
-    $('#project_button').html('<button id="open_add_project_edit" status="close" type="button" class="btn btn-small btn-info">编辑项目</button>');
+function push_project_info(p){
+    var param={ project:p};
+    $.getJSON('/project_info', param, function(data){
+        var htm=['<table class="table table-hover ">'];
+
+        htm.push('<tr>');
+        htm.push('<td width="120" align="right">project:</td>');
+        htm.push('<td>'+'<input type="text" readOnly="true" class="form-control" id="add_project" value="'+data[0]+'">'+'</td>');
+        htm.push('</tr>');
+
+        htm.push('<tr>');
+        htm.push('<td width="120" align="right">group:</td>');
+        htm.push('<td>'+'<input type="text" class="form-control" id="add_group" placeholder="" value="'+data[1]+'">'+'</td>');
+        htm.push('</tr>');
+
+        htm.push('<tr>');
+        htm.push('<td width="120" align="right">environment:</td>');
+        htm.push('<td>'+'<input type="text" readOnly="true" class="form-control" id="add_environment" placeholder="test" value="'+data[2]+'">'+'</td>');
+        htm.push('</tr>');
+
+        htm.push('<tr>');
+        htm.push('<td width="120" align="right">projectName:</td>');
+        htm.push('<td>'+'<input type="text" readOnly="true" class="form-control" id="add_p" value="'+data[3]+'">'+'</td>');
+        htm.push('</tr>');
+
+        htm.push('<tr>');
+        htm.push('<td width="120" align="right">codetype:</td>');
+        htm.push('<td>'+'<input type="text" readOnly="true" class="form-control" id="add_codetype" placeholder="python" value="'+data[4]+'">'+'</td>');
+        htm.push('</tr>');
+
+        htm.push('<tr>');
+        htm.push('<td width="120" align="right">port:</td>');
+        htm.push('<td>'+'<input type="text" class="form-control" id="add_port" placeholder="go port[8000-10000]  python port[3000-5000]" value="'+data[5]+'">'+'</td>');
+        htm.push('</tr>');
+
+
+        htm.push('<tr>');
+        htm.push('<td width="120" align="right">git:</td>');
+        htm.push('<td>'+'<input type="text" class="form-control" id="add_git" placeholder="git://github.com/sre/op.git" value="'+data[6]+'">'+'</td>');
+        htm.push('</tr>');
+
+        htm.push('<tr>');
+        htm.push('<td width="120" align="right">branch:</td>');
+        htm.push('<td>'+'<input type="text" class="form-control" id="add_branch" placeholder="python" value="'+data[7]+'">'+'</td>');
+        htm.push('</tr>');
+
+        htm.push('<tr>');
+        htm.push('<td width="120" align="right">checkport:</td>');
+        htm.push('<td>'+'<input type="text" class="form-control" id="add_checkport" value="'+data[8]+'">'+'</td>');
+        htm.push('</tr>');
+
+        htm.push('<tr>');
+        htm.push('<td width="120" align="right">checkhttp:</td>');
+        htm.push('<td>'+'<input type="text" class="form-control" id="add_checkhttp"  value="'+data[9]+'">'+'</td>');
+        htm.push('</tr>');
+
+        htm.push('<tr>');
+        htm.push('<td width="120" align="right">httpurl:</td>');
+        htm.push('<td>'+'<input type="text" class="form-control" id="add_httpurl"  value="'+data[10]+'">'+'</td>');
+        htm.push('</tr>');
+
+        htm.push('<tr>');
+        htm.push('<td width="120" align="right">httpcode:</td>');
+        htm.push('<td>'+'<input type="text" class="form-control" id="add_httpcode"  value="'+data[11]+'">'+'</td>');
+        htm.push('</tr>');
+
+        htm.push('<tr>');
+        htm.push('<td width="120" align="right">make:</td>');
+        htm.push('<td><textarea id="add_make" rows="5" cols="100"  >'+data[12]+'</textarea></td>');
+        htm.push('</tr>');
+
+        htm.push('<tr>');
+        htm.push('<td width="120" align="right">supervisor:</td>');
+        htm.push('<td><textarea id="add_supervisor" rows="5" cols="100"  >'+data[13]+'</textarea></td>');
+        htm.push('</tr>');
+
+        htm.push('<tr>');
+        htm.push('<td width="120" align="right">config:</td>');
+        htm.push('<td><textarea id="add_config" rows="5" cols="100"  >'+data[14]+'</textarea></td>');
+        htm.push('</tr>');
+
+        htm.push('<tr>');
+        htm.push('<td width="120" align="right">remarks:</td>');
+        htm.push('<td><textarea id="add_remarks" rows="5" cols="100"  >'+data[15]+'</textarea></td>');
+        htm.push('</tr>');
+
+        htm.push('<tr>');
+        htm.push('<td></td>');
+        htm.push('<td><div><div style="float:left"><button id="update_project" class="btn btn-small btn-success" >确认修改</button></div><div style="float:right"><button id="del_project" class="btn btn-small btn-danger">删除项目及关联的主机</button></div></div></td>');
+        htm.push('</tr>');
+
+        htm.push('<tr>');
+        htm.push('<td width="120" align="right"></td>');
+        htm.push('<td></td>');
+        htm.push('</tr>');
+
+        htm.push('<tr class="success">');
+        htm.push('<td width="120" align="right">克隆新项目</td>');
+        htm.push('<td></td>');
+        htm.push('</tr>');
+
+        htm.push('<tr>');
+        htm.push('<td width="120" align="right">新项目环境:</td>');
+        htm.push('<td>'+'<select class="form-control" id="add_newenvironment"><option value="test" selected = "selected">test</option><option value="online">online</option><option value="pre" >pre</option><option value="beta">beta</option><option value="dev">dev</option><option value="offline">offline</option><option value="qa">qa</option><option value="job">job</option></select>'+'</td>');
+        htm.push('</tr>');
+
+        htm.push('<tr>');
+        htm.push('<td width="120" align="right">新项目名称:</td>');
+        htm.push('<td>'+'<input type="text" class="form-control" id="add_newp" value="'+data[3]+'">'+'</td>');
+        htm.push('</tr>');
+
+        htm.push('<tr>');
+        htm.push('<td></td>');
+        htm.push('<td><div><div style="float:left"><button id="clone_project" class="btn btn-small btn-success" >克隆新项目</button></div><div style="float:right"></div></div></td>');
+        htm.push('</tr>');
+
+        htm.push('</table>');
+        $('#project_div').html(htm.join(''));
+    });
 };
 
 
-function config_button_div(){
-    $('#config_button').html('<button id="open_add_config_edit" status="close" type="button" class="btn btn-small btn-info">编辑配置</button>');
-};
-
-$("body").on('click', '#open_add_config_edit', function(){
-    var  p = $('#ipt_project').val()
-    if (p != undefined){
-        push_edit_config_table(p);
-    }
-    else{
-        alert('project_name null');
+$("body").on('click', '#clone_project', function(){
+    if (confirm('请确认克隆项目名称,不会冲突')) {
+        var add_project          = $('#add_project').val()
+        var add_newenvironment   = $('#add_newenvironment').val()
+        var add_newp             = $('#add_newp').val()
+        var newproject = add_newenvironment + '_' +  add_newp
+        if(newproject == add_project){
+            alert('ERROR: project name conflict');
+            return false;
+        }
+        if(!add_newenvironment){
+            alert('new environment null');
+            return false;
+        }
+        if(!add_project){
+            alert('new project name null');
+            return false;
+        }
+        var param = {
+            project: add_project,
+            environment: add_newenvironment,
+            p: add_newp
+        }
+        $.post('/clone_project', param, function(data){
+            project_list()
+            alert(data.status+"  "+data.log);
+        }, 'json');
     };
 });
 
-$("body").on('click', '#open_add_project_edit', function(){
-    var  p = $('#ipt_project').val()
-    if (p != undefined){
-        push_edit_project_table(p);
-    }
-    else{
-        alert('project_name null');
-    };
-});
 
-
-function push_edit_project_table(p){
+function push_project_manage(p){
     var status = $('#project_div').attr('status')
     if (status == 'close') {
-        var param = {
-            project: p
-        }
-        $.getJSON('/project_info', param, function(data){
-            var htm=['<table class="table table-hover ">'];
+        push_project_info(p)
+        hostmanage_list_table(p)
+        push_add_host_table(p)
 
-            htm.push('<tr>');
-            htm.push('<td width="120" align="right">Business line:</td>');
-            htm.push('<td>'+'<input type="text" class="form-control" id="add_business" placeholder="" value="'+data[0]+'">'+'</td>');
-            htm.push('</tr>');
-
-            htm.push('<tr>');
-            htm.push('<td width="120" align="right">environment:</td>');
-            htm.push('<td>'+'<input type="text" readOnly="true" class="form-control" id="add_environment" placeholder="hockey" value="'+data[1]+'">'+'</td>');
-            htm.push('</tr>');
-
-            htm.push('<tr>');
-            htm.push('<td width="120" align="right">project:</td>');
-            htm.push('<td>'+'<input type="text" readOnly="true" class="form-control" id="add_nproject" placeholder="api" value="'+data[2]+'">'+'</td>');
-            htm.push('</tr>');
-
-            htm.push('<tr>');
-            htm.push('<td width="120" align="right">type:</td>');
-            htm.push('<td>'+'<input type="text" readOnly="true" class="form-control" id="add_type" placeholder="python" value="'+data[3]+'">'+'</td>');
-            htm.push('</tr>');
-
-            htm.push('<tr>');
-            htm.push('<td width="120" align="right">port:</td>');
-            htm.push('<td>'+'<input type="text" class="form-control" id="add_port" placeholder="go port[8000-10000]  python port[3000-5000]" value="'+data[4]+'">'+'</td>');
-            htm.push('</tr>');
-
-
-            htm.push('<tr>');
-            htm.push('<td width="120" align="right">git:</td>');
-            htm.push('<td>'+'<input type="text" class="form-control" id="add_git" placeholder="git://github.com/sre/op.git" value="'+data[5]+'">'+'</td>');
-            htm.push('</tr>');
-
-            htm.push('<tr>');
-            htm.push('<td width="120" align="right">branch:</td>');
-            htm.push('<td>'+'<input type="text" class="form-control" id="add_branch" placeholder="python" value="'+data[6]+'">'+'</td>');
-            htm.push('</tr>');
-
-            htm.push('<tr>');
-            htm.push('<td></td>');
-            htm.push('<td><div><div style="float:left"><button id="update_project" class="btn btn-small btn-success" >确认保存</button></div><div style="float:right"><button id="del_project" class="btn btn-small btn-danger">删除项目及关联的主机</button></div></div></td>');
-            htm.push('</tr>');
-
-            htm.push('</table>');
-            $('#project_div').html(htm.join(''));
-        });
         $('#project_div').attr('status','open')
     }else{
         $('#project_div').html("");
+        $('#config_div').html("");
+        $('#hostManage').html("");
+        $('#add_host_table').html("");
         $('#project_div').attr('status','close')
     }
 };
@@ -1454,7 +1439,7 @@ $("#rmlock").on('click', function(){
         });
     }
     else{
-        alert('project_name null');
+        alert('project null');
     };
 });
 
@@ -1471,7 +1456,7 @@ $("#killtask").on('click', function(){
         };
     }
     else{
-        alert('project_name null');
+        alert('project null');
     };
 });
 
@@ -1487,119 +1472,9 @@ $("body").on('click', '#clean_git_cache', function(){
         });
     }
     else{
-        alert('project_name null');
+        alert('project null');
     };
 });
-
-
-function push_edit_config_table(p){
-    var status = $('#config_div').attr('status')
-    if (status == 'close') {
-        var param = {
-            project: p
-        }
-        $.getJSON('/config_info', param, function(data){
-            var htm=['<table class="table table-hover">'];
-
-            htm.push('<tr>');
-            htm.push('<td colspan="2">'+'ip = $ip$'+'</td>');
-            htm.push('</tr>');
-            htm.push('<tr>');
-            htm.push('<td colspan="2">'+'numprocs = $pnum$'+'</td>');
-            htm.push('</tr>');
-
-            htm.push('<tr>');
-            htm.push('<td width="120" align="right">'+data[0][0]+':</td>');
-            htm.push('<td><textarea id="'+data[0][0]+'" rows="5" cols="100"  >'+data[0][1]+'</textarea></td>');
-            htm.push('</tr>');
-
-            htm.push('<tr>');
-            htm.push('<td width="120" align="right">'+data[1][0]+':</td>');
-            htm.push('<td><textarea id="'+data[1][0]+'" rows="5" cols="100"  >'+data[1][1]+'</textarea></td>');
-            htm.push('</tr>');
-
-            htm.push('<tr>');
-            htm.push('<td width="120" align="right">'+data[2][0]+':</td>');
-            htm.push('<td><textarea id="'+data[2][0]+'" rows="5" cols="100"  >'+data[2][1]+'</textarea></td>');
-            htm.push('</tr>');
-
-            htm.push('<tr>');
-            htm.push('<td width="120" align="right">'+data[3][0]+':</td>');
-            htm.push('<td><textarea id="'+data[3][0]+'" rows="5" cols="100"  >'+data[3][1]+'</textarea></td>');
-            htm.push('</tr>');
-
-            htm.push('<tr>');
-            htm.push('<td width="120" align="right">'+data[4][0]+':</td>');
-            htm.push('<td><textarea id="'+data[4][0]+'" rows="5" cols="100"  >'+data[4][1]+'</textarea></td>');
-            htm.push('</tr>');
-
-            htm.push('<tr>');
-            htm.push('<td width="120" align="right">'+data[5][0]+':</td>');
-            htm.push('<td><textarea id="'+data[5][0]+'" rows="5" cols="100"  >'+data[5][1]+'</textarea></td>');
-            htm.push('</tr>');
-
-
-            if (data[6][1]=="yes"){
-                htm.push('<tr>');
-                htm.push('<td width="120" align="right">'+data[6][0]+':</td>');
-                htm.push('<td>'+'<select class="form-control" id="'+data[6][0]+'"><option value="yes" selected = "selected">yes</option><option value="no">no</option></select>'+'</td>');
-                htm.push('</tr>');
-            }else{
-                htm.push('<tr>');
-                htm.push('<td width="120" align="right">'+data[6][0]+':</td>');
-                htm.push('<td>'+'<select class="form-control" id="'+data[6][0]+'"><option value="yes">yes</option><option value="no" selected = "selected">no</option></select>'+'</td>');
-                htm.push('</tr>');
-            }
-
-            if (data[7][1]=="yes"){
-                htm.push('<tr>');
-                htm.push('<td width="120" align="right">'+data[7][0]+':</td>');
-                htm.push('<td>'+'<select class="form-control" id="'+data[7][0]+'"><option value="yes" selected = "selected">yes</option><option value="no">no</option></select>'+'</td>');
-                htm.push('</tr>');
-            }else{
-                htm.push('<tr>');
-                htm.push('<td width="120" align="right">'+data[7][0]+':</td>');
-                htm.push('<td>'+'<select class="form-control" id="'+data[7][0]+'"><option value="yes">yes</option><option value="no" selected = "selected">no</option></select>'+'</td>');
-                htm.push('</tr>');
-            }
-
-
-            if (data[8][1]=="yes"){
-                htm.push('<tr>');
-                htm.push('<td width="120" align="right">'+data[8][0]+':</td>');
-                htm.push('<td>'+'<select class="form-control" id="'+data[8][0]+'"><option value="yes" selected = "selected">yes</option><option value="no">no</option></select>'+'</td>');
-                htm.push('</tr>');
-            }else{
-                htm.push('<tr>');
-                htm.push('<td width="120" align="right">'+data[8][0]+':</td>');
-                htm.push('<td>'+'<select class="form-control" id="'+data[8][0]+'"><option value="yes">yes</option><option value="no" selected = "selected">no</option></select>'+'</td>');
-                htm.push('</tr>');
-            }
-
-            htm.push('<tr>');
-            htm.push('<td width="120" align="right">'+data[9][0]+':</td>');
-            htm.push('<td>'+'<input type="text" class="form-control" id="'+data[9][0]+'" placeholder="/" value="'+data[9][1]+'">'+'</td>');
-            htm.push('</tr>');
-
-            htm.push('<tr>');
-            htm.push('<td width="120" align="right">'+data[10][0]+':</td>');
-            htm.push('<td>'+'<input type="text" class="form-control" id="'+data[10][0]+'" placeholder="200" value="'+data[10][1]+'">'+'</td>');
-            htm.push('</tr>');
-
-
-            htm.push('<tr>');
-            htm.push('<td></td>');
-            htm.push('<td><button id="update_config" class="btn btn-small btn-success" >确认保存</button></td>');
-            htm.push('</tr>');
-            htm.push('</table>');
-            $('#config_div').html(htm.join(''));
-        });
-        $('#config_div').attr('status','open')
-    }else{
-        $('#config_div').html("");
-        $('#config_div').attr('status','close')
-    }
-};
 
 
 function online_tag(p){
@@ -1637,7 +1512,7 @@ function current_tag(p){
 $("#lastlog").on('click', function(){
     var  p = $('#ipt_project').val()
     if (p == undefined){
-        alert('project_name null');
+        alert('project null');
     }
     var param={ project:p };
     $.getJSON('/lock_check', param, function(lockdata){
@@ -1674,54 +1549,6 @@ $("#lastlog").on('click', function(){
             $('#cnt').html(htm.join(''));
         });
     });
-});
-
-
-$("body").on('click', '#update_config', function(){
-    if (confirm('请确认配置信息')) {
-
-        var project    = $('#ipt_project').val()
-        var make       = $('#make').val()
-        var supervisor = $('#supervisor').val()
-        var config     = $('#config').val()
-        var remarks    = $('#remarks').val()
-        var startcmd   = $('#startcmd').val()
-        var packfile   = $('#packfile').val()
-        var istag      = $('#istag').val()
-        var checkport  = $('#checkport').val()
-        var checkhttp  = $('#checkhttp').val()
-        var httpurl    = $('#httpurl').val()
-        var httpcode   = $('#httpcode').val()
-
-        if(!project ){
-            alert('project null');
-            return false;
-        }
-
-        var param = {
-            project     : project,
-            make        : make,
-            supervisor  : supervisor,
-            config      : config,
-            remarks     : remarks,
-            startcmd    : startcmd,
-            packfile    : packfile,
-            istag       : istag,
-            checkport   : checkport,
-            checkhttp   : checkhttp,
-            httpurl     : httpurl,
-            httpcode    : httpcode
-        }
-
-        $.post('/update_config', param, function(data){
-            alert(data.status+"  "+data.log);
-            if(data.status == 'ok'){
-                $('#config_div').html("");
-                $('#config_div').attr('status','close')
-                project_list();
-            }
-        }, 'json');
-    };
 });
 
 
@@ -1817,7 +1644,7 @@ function stop_submit(ip){
         };
     }
     else{
-        alert('project_name null');
+        alert('project null');
     };
 };
 
@@ -2053,7 +1880,7 @@ function createhost(){
         htm.push('<tr><th>创建主机</th><th>选择</th><th>备注</th></tr>');
             htm.push('<tr>');
             htm.push('<td>业务线</td>');
-            htm.push('<td>'+'<select class="form-control" id="selectbigbusiness" onchange="get_area()"><option value="pp-online">皮皮线上</option><option value="pp-test">皮皮测试</option><option value="zy-online">最右线上</option><option value="zy-test">最右测试</option><option value="hanabi-online">火花线上</option><option value="hanabi-test">火花测试</option></select>'+'</td>');
+            htm.push('<td>'+'<select class="form-control" id="selectbiggroup" onchange="get_area()"><option value="pp-online">皮皮线上</option><option value="pp-test">皮皮测试</option><option value="zy-online">最右线上</option><option value="zy-test">最右测试</option><option value="hanabi-online">火花线上</option><option value="hanabi-test">火花测试</option></select>'+'</td>');
             htm.push('<td></td>');
             htm.push('</tr>');
             htm.push('<tr>');
@@ -2110,9 +1937,9 @@ function hostmanagelist(){
 };
 
 function get_area(){
-    var selectbigbusiness = $('#selectbigbusiness').val()
+    var selectbiggroup = $('#selectbiggroup').val()
     var param = {
-        bigbusiness: selectbigbusiness
+        biggroup: selectbiggroup
     }
     $.getJSON('/get_area', param , function(data){
 
@@ -2149,7 +1976,7 @@ function get_configuration(){
 $("body").on('click', '#create_hosts', function(){
     $('#create_hosts_result').html("");
     $('#ProgressBarDiv').html("");
-    var bigbusiness   = $('#selectbigbusiness').val()
+    var biggroup   = $('#selectbiggroup').val()
     var area   = $('#selectarea').val()
     var configuration   = $('#selectconfiguration').val()
     var image   = $('#selectimage').val()
@@ -2157,7 +1984,7 @@ $("body").on('click', '#create_hosts', function(){
 
     if (confirm('请确认创建主机')) {
         var param = {
-            bigbusiness: bigbusiness,
+            biggroup: biggroup,
             area: area,
             configuration: configuration,
             image: image,

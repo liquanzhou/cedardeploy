@@ -33,20 +33,13 @@ c = mdb.cursor()
 
 def project_info(project):
     print(project)
-    sql = "SELECT * FROM `projectinfo` WHERE project_name = '%s';" % (project)
-    c.execute(sql)
-    ones = c.fetchall()
-    return ones[0]
-
-def config_info(project):
-    print(project)
-    sql = "SELECT * FROM `project_config` WHERE project_name = '%s';" % (project)
+    sql = "SELECT * FROM `projectinfo` WHERE project = '%s';" % (project)
     c.execute(sql)
     ones = c.fetchall()
     return ones[0]
 
 def gethostname(project):
-    sql = "SELECT `ip`,`hostname`,`pnum` FROM `serverinfo` WHERE project_name = '%s';" % (project)
+    sql = "SELECT `ip`,`hostname`,`pnum` FROM `serverinfo` WHERE project = '%s';" % (project)
     c.execute(sql)
     ones = c.fetchall()
     hostnameinfo = {}
@@ -78,35 +71,30 @@ class Deploy:
         self.reason      = reason
 
         pinfo  = project_info(project)
-        cinfo  = config_info(project)
         self.hostnameinfo  = gethostname(project)
         self.workorderinfo = getworkorder(project)
 
         print(pinfo)
-        print(cinfo)
         print(self.hostnameinfo)
         print(self.workorderinfo)
 
-        self.business    = pinfo[1]
+        self.group       = pinfo[1]
         self.environment = pinfo[2]
         self.p           = pinfo[3]
-        self.Type        = pinfo[4]
+        self.codetype    = pinfo[4]
         self.port        = int(pinfo[5])
         self.git         = pinfo[6]
         self.branch      = pinfo[7]
 
+        self.checkport   = pinfo[8]
+        self.checkhttp   = pinfo[9]
+        self.httpurl     = pinfo[10]
+        self.httpcode    = pinfo[11]
 
-        self.make        = cinfo[1]
-        self.supervisor  = cinfo[2]
-        self.config      = cinfo[3]
-        self.remarks     = cinfo[4]
-        self.startcmd    = cinfo[5]
-        self.packfile    = cinfo[6]
-        self.istag       = cinfo[7]
-        self.checkport   = cinfo[8]
-        self.checkhttp   = cinfo[9]
-        self.httpurl     = cinfo[10]
-        self.httpcode    = cinfo[11]
+        self.make        = pinfo[12]
+        self.supervisor  = pinfo[13]
+        self.config      = pinfo[14]
+        self.remarks     = pinfo[15]
 
         self.host        = 'Deploy'
         self.hostName    = 'Deploy'
@@ -117,7 +105,7 @@ class Deploy:
 
         self.execUser       = exec_user
         self.basicGlist     = basicGlist
-        self.businessRobot  = businessRobot
+        self.groupRobot     = groupRobot
         self.sreRobot       = sreRobot
         self.autotestURL    = autotestURL
         self.autolist       = autolist
@@ -212,7 +200,7 @@ class Deploy:
         pnum = self.hostnameinfo[self.host][1]
         for port in range(self.port, self.port + pnum):
             self.removeService(port)
-            self.stop[self.Type](port)
+            self.stop[self.codetype](port)
 
     def serviceRestart(self):
         pnum = self.hostnameinfo[self.host][1]
@@ -220,7 +208,7 @@ class Deploy:
             self.addlog('\nDel Service Start:')
             self.removeService(port)
             self.addlog('\nRestart Service:')
-            self.restart[self.Type](port)
+            self.restart[self.codetype](port)
             self.addlog('\nCheck Start:')
             self.check_status(port)
             self.http_check(port)
@@ -230,14 +218,14 @@ class Deploy:
             self.increaseService(port)
 
     def serviceUpdate(self):
-        self.rsyncCode[self.Type]()
+        self.rsyncCode[self.codetype]()
         self.serviceRestart()
 
     def serviceFastback(self):
-        self.rsyncCode[self.Type]()
+        self.rsyncCode[self.codetype]()
         pnum = self.hostnameinfo[self.host][1]
         for port in range(self.port, self.port + pnum):
-            self.restart[self.Type](port)
+            self.restart[self.codetype](port)
 
 
     def currenthost(self, host):
@@ -255,7 +243,7 @@ class Deploy:
     def updateHostCommit(self):
         if self.commitid:
             sql = "update `serverinfo` set `commitid`='%s',`updatetime`='%s' \
-                           where project_name='%s' and ip='%s';   " % (
+                           where project='%s' and ip='%s';   " % (
                            self.commitid, self.tag, self.project, self.host)
             try:
                 c.execute(sql)
@@ -265,7 +253,7 @@ class Deploy:
 
     def updateTaskStatus(self):
         sql = "update `updateoperation` set `status`='%s',`tag`='%s',`commitid`='%s' \
-                       where project_name='%s' and taskid='%s';  " % (
+                       where project='%s' and taskid='%s';  " % (
                        self.status, self.tag, self.commitid, self.project, self.taskid)
         try:
             c.execute(sql)
@@ -275,7 +263,7 @@ class Deploy:
 
     def updateProgress(self):
         self.progress = self.progress + 1
-        sql = "update `updateoperation` set `progress`=%d where project_name='%s' and taskid='%s';" % (self.progress, self.project, self.taskid)
+        sql = "update `updateoperation` set `progress`=%d where project='%s' and taskid='%s';" % (self.progress, self.project, self.taskid)
         print(sql)
         try:
             c.execute(sql)
@@ -305,8 +293,8 @@ class Deploy:
             content = "%s  %s:  %s\n%s\n操作人: %s" %(
                        self.project, self.operation, self.status, HL, self.currentuser)
 
-        if self.business in self.basicGlist:
-            self.dingding(self.businessRobot, content)
+        if self.group in self.basicGlist:
+            self.dingding(self.groupRobot, content)
 
     def expansion_notice(self):
         if self.environment != 'online':
@@ -321,7 +309,7 @@ class Deploy:
 
     def getlastokstatus(self):
         sql = "SELECT `tag`,`commitid` FROM `updateoperation`  \
-                      WHERE project_name = '%s' and operation = 'serviceUpdate' and status = 'ok' \
+                      WHERE project = '%s' and operation = 'serviceUpdate' and status = 'ok' \
                       order by taskid desc limit 1;" % (self.project)
         c.execute(sql)
         ones = c.fetchall()
@@ -400,7 +388,7 @@ class Deploy:
             self.addlog('\nCode Compile:')
             self.make_operation()
             self.makestatus = 'yes'
-            self.tag_operation()
+            #self.tag_operation()
             self.addlog('\nVersion Backup:')
             self.backup_operation()
             self.write_commitid()
@@ -423,7 +411,7 @@ class Deploy:
         self.local_commitid()
 
     def code_update(self):
-        if self.Type == 'go':
+        if self.codetype == 'go':
             shell_cmd = ''' rm -rf %s/%s ; git  clone  --depth=1 -b %s %s %s/%s && cd %s/%s && git log -n 1 --stat
                         ''' %(self.dir_path_git, self.project, self.branch, self.git, self.dir_path_git, self.project, self.dir_path_git, self.project )
             self.exec_shell(shell_cmd)
@@ -481,7 +469,7 @@ class Deploy:
             self.faildone('%s/%s-%s/ directory does not exist. build_file_operation' 
                       %(self.dir_path_git, self.project, self.tag) )
 
-        if self.Type == 'golang':
+        if self.codetype == 'golang':
             shell_cmd = "cd %s/%s-%s && rm -rf  deploy-etc/ deploy-bin/etc && mkdir -p deploy-bin && git clone --depth=1 %s deploy-etc  && cp -a deploy-etc/etc  deploy-bin/etc " %(self.dir_path_git, self.project, self.tag, self.supervisor.strip() )
             self.exec_shell(shell_cmd)
             shell_cmd = '''cd %s/%s-%s && cp -a startdata libs deploy-bin/ ''' %(
@@ -499,7 +487,7 @@ class Deploy:
     def make_operation(self):
         if self.make:
             make_start_time = time.strftime('%Y-%m-%d %H:%M:%S')
-            if self.Type == 'golang':
+            if self.codetype == 'golang':
                 shell_cmd = '''cd %s/%s && . $HOME/.bashrc  \
                                       && sh deploy_build.sh %s %s
                             ''' %(self.dir_path_git, self.project, self.project, self.make)
@@ -512,11 +500,11 @@ class Deploy:
             self.addlog('make_done_time: %s' %(make_done_time))
 
 
-    def tag_operation(self):
-        if self.istag == 'yes':
-            shell_cmd = "cd %s/%s && git tag %s-%s && git push origin --tags" %(
-                           self.dir_path_git, self.project, self.project, self.tag)
-            self.exec_shell(shell_cmd)
+    #def tag_operation(self):
+    #    if self.istag == 'yes':
+    #        shell_cmd = "cd %s/%s && git tag %s-%s && git push origin --tags" %(
+    #                       self.dir_path_git, self.project, self.project, self.tag)
+    #        self.exec_shell(shell_cmd)
 
     def write_commitid(self):
         self.addlog('INFO: write_commitid')
@@ -687,7 +675,7 @@ class Deploy:
         if self.operation == 'serviceExpansion':
             return 'not removeService'
 
-        if self.Type == 'golang':
+        if self.codetype == 'golang':
             consul_port = port - 3000
             consul_srv_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             consul_srv_sock.settimeout(2)

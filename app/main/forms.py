@@ -86,12 +86,12 @@ def hostInit(project, host, Type):
         return Result['status']
 
 
-def deployConfig(project, host, ones, ones1, ones2):
+def deployConfig(project, host, ones, ones1):
     try:
-        if ones.type in supervisord_list:
+        if ones.codetype in supervisord_list:
             DIR = getdir(project)
 
-            supervisor_conf = ones2.supervisor
+            supervisor_conf = ones.supervisor
 
             variable = {
                 '$USER$':                exec_user,
@@ -149,7 +149,7 @@ def logHandle(logtext):
 
     return result
 
-crontab_conf = '''#01 01 * * * $HOST_PATH$$environment$_$project$/deploy_start.sh >> $supervisor_log_path$/$environment$_$project$.log  2>&1 
+crontab_conf = '''#01 01 * * * $HOST_PATH$$project$/deploy_start.sh >> $supervisor_log_path$/$project$.log  2>&1 
 '''
 
 
@@ -158,10 +158,10 @@ config_list = '''
 '''
 
 
-supervisor_python_conf = '''[program:$environment$_$project$]
-environment=HOME=/home/$USER$,PROJECT_ENV="$environment$",PROJECT_NAME=$project$,PROJECT_PORT=$port$,PROJECT_PATH="$HOST_PATH$$environment$_$project$/",PRODUCT_ENV="",$env$
-directory=$HOST_PATH$$environment$_$project$/
-command=/usr/bin/python  $HOST_PATH$$environment$_$project$/main.py --port=%(process_num)02d
+supervisor_python_conf = '''[program:$project$]
+environment=HOME=/home/$USER$,PROJECT_ENV="$environment$",PROJECT=$project$,PROJECT_PORT=$port$,PROJECT_PATH="$HOST_PATH$$project$/",PRODUCT_ENV="",$env$
+directory=$HOST_PATH$$project$/
+command=/usr/bin/python  $HOST_PATH$$project$/main.py --port=%(process_num)02d
 process_name=%(process_num)d
 user=$USER$
 startretries=5
@@ -177,10 +177,10 @@ numprocs = $pnum$
 numprocs_start=$port$
 '''
 
-supervisor_nodejs_conf = '''[program:$environment$_$project$]
-environment=HOME=/home/$USER$,PROJECT_ENV="$environment$",PROJECT_NAME=$project$,PROJECT_PORT=$port$,PROJECT_PATH="$HOST_PATH$$environment$_$project$/",PRODUCT_ENV="",$env$
-directory=$HOST_PATH$$environment$_$project$/
-command=/usr/bin/node $HOST_PATH$$environment$_$project$/index.js --port=%(process_num)d
+supervisor_nodejs_conf = '''[program:$project$]
+environment=HOME=/home/$USER$,PROJECT_ENV="$environment$",PROJECT=$project$,PROJECT_PORT=$port$,PROJECT_PATH="$HOST_PATH$$project$/",PRODUCT_ENV="",$env$
+directory=$HOST_PATH$$project$/
+command=/usr/bin/node $HOST_PATH$$project$/index.js --port=%(process_num)d
 process_name=%(process_num)d
 user=$USER$
 startretries=5
@@ -196,10 +196,10 @@ numprocs = $pnum$
 numprocs_start=$port$
 '''
 
-supervisor_go_conf = '''[program:$environment$_$project$]
-environment=HOME=/home/$USER$,PROJECT_ENV="$environment$",PROJECT_NAME=$project$,PROJECT_PORT=$port$,PROJECT_PATH="$HOST_PATH$$environment$_$project$/",PRODUCT_ENV="",$env$
-directory=$HOST_PATH$$environment$_$project$/
-command=$HOST_PATH$$environment$_$project$/bin/$project$ -f $HOST_PATH$$environment$_$project$/etc/$environment$_$project$.conf
+supervisor_go_conf = '''[program:$project$]
+environment=HOME=/home/$USER$,PROJECT_ENV="$environment$",PROJECT=$project$,PROJECT_PORT=$port$,PROJECT_PATH="$HOST_PATH$$project$/",PRODUCT_ENV="",$env$
+directory=$HOST_PATH$$project$/
+command=$HOST_PATH$$project$/bin/$project$ -f $HOST_PATH$$project$/etc/$project$.conf
 process_name = %(process_num)d
 user=$USER$
 startretries=5
@@ -214,10 +214,10 @@ loglevel=info
 
 '''
 
-supervisor_sh_conf = '''[program:$environment$_$project$]
-environment=HOME=/home/$USER$,PROJECT_ENV="$environment$",PROJECT_NAME=$project$,PROJECT_PORT=$port$,PROJECT_PATH="$HOST_PATH$$environment$_$project$/",PRODUCT_ENV="",$env$
-directory=$HOST_PATH$$environment$_$project$/
-command=/bin/bash $HOST_PATH$$environment$_$project$/deploy_start.sh --port=%(process_num)d
+supervisor_sh_conf = '''[program:$project$]
+environment=HOME=/home/$USER$,PROJECT_ENV="$environment$",PROJECT=$project$,PROJECT_PORT=$port$,PROJECT_PATH="$HOST_PATH$$project$/",PRODUCT_ENV="",$env$
+directory=$HOST_PATH$$project$/
+command=/bin/bash $HOST_PATH$$project$/deploy_start.sh --port=%(process_num)d
 process_name = %(process_num)d
 user=$USER$
 startretries=5

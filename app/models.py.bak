@@ -28,7 +28,7 @@ class User(UserMixin, db.Model):
 class serverinfo(db.Model):
     __tablename__ = 'serverinfo'
     id = db.Column(db.Integer, primary_key=True)
-    project = db.Column(db.String(64) , index=True)
+    project_name = db.Column(db.String(64) , index=True)
     hostname = db.Column(db.String(64))
     ip = db.Column(db.String(64))
     pnum = db.Column(db.String(32))
@@ -39,8 +39,8 @@ class serverinfo(db.Model):
     updatestatus = db.Column(db.String(64))
     updatetime = db.Column(db.String(64))
 
-    def __init__(self, project, hostname, ip, pnum, env, checkstatus, checktime, commitid, updatestatus, updatetime):
-        self.project = project
+    def __init__(self, project_name, hostname, ip, pnum, env, checkstatus, checktime, commitid, updatestatus, updatetime):
+        self.project_name = project_name
         self.hostname = hostname
         self.ip = ip
         self.pnum = pnum
@@ -73,47 +73,62 @@ class servicegroup(db.Model):
 
 class projectinfo(db.Model):
     __tablename__ = 'projectinfo'
-    project = db.Column(db.String(64), primary_key=True)
-    group = db.Column(db.String(40))
+    project_name = db.Column(db.String(64), primary_key=True)
+    business = db.Column(db.String(40))
     environment = db.Column(db.String(64))
-    p = db.Column(db.String(64))
-    codetype = db.Column(db.String(50))
+    project = db.Column(db.String(64))
+    type = db.Column(db.String(50))
     port = db.Column(db.Integer)
     git = db.Column(db.String(1024))
     branch = db.Column(db.String(64))
-    checkport = db.Column(db.String(10))
-    checkhttp = db.Column(db.String(10))
-    httpurl = db.Column(db.String(2000))
-    httpcode = db.Column(db.String(8))
+
+
+    def __init__(self, project_name, business, environment, project, type, port, git, branch):
+        self.project_name = project_name
+        self.business = business
+        self.environment = environment
+        self.project = project
+        self.type = type
+        self.port = port
+        self.git = git
+        self.branch = branch
+
+
+class project_config(db.Model):
+    __tablename__ = 'project_config'
+    project_name = db.Column(db.String(64), primary_key=True)
     make = db.Column(db.Text)
     supervisor = db.Column(db.Text)
     config = db.Column(db.Text)
     remarks = db.Column(db.Text)
+    startcmd = db.Column(db.String(200))
+    packfile = db.Column(db.String(200))
+    istag = db.Column(db.String(10))
+    checkport = db.Column(db.String(10))
+    checkhttp = db.Column(db.String(10))
+    httpurl = db.Column(db.String(2000))
+    httpcode = db.Column(db.String(8))
 
-    def __init__(self, project, group, environment, p, codetype, port, git, branch, checkport, checkhttp, httpurl, httpcode, make, supervisor, config, remarks):
-        self.project = project
-        self.group = group
-        self.environment = environment
-        self.p = p
-        self.codetype = codetype
-        self.port = port
-        self.git = git
-        self.branch = branch
-        self.checkport = checkport
-        self.checkhttp = checkhttp
-        self.httpurl = httpurl
-        self.httpcode = httpcode
+
+    def __init__(self, project_name, make, supervisor, config, remarks, startcmd, packfile, istag, checkport, checkhttp, httpurl, httpcode):
+        self.project_name = project_name
         self.make = make
         self.supervisor = supervisor
         self.config = config
         self.remarks = remarks
-
+        self.startcmd = startcmd
+        self.packfile = packfile
+        self.istag = istag
+        self.checkport = checkport
+        self.checkhttp = checkhttp 
+        self.httpurl = httpurl
+        self.httpcode = httpcode
 
 
 class updateoperation(db.Model):
     __tablename__ = 'updateoperation'
     taskid = db.Column(db.String(64), primary_key=True, index=True)
-    project = db.Column(db.String(64))
+    project_name = db.Column(db.String(64))
     hostlist = db.Column(db.String(2000))
     tag = db.Column(db.String(64))
     rtime = db.Column(db.String(32))
@@ -124,9 +139,9 @@ class updateoperation(db.Model):
     progress = db.Column(db.Integer)
     logpath = db.Column(db.String(2000))
 
-    def __init__(self, taskid, project, hostlist, tag, rtime, operation, user, status, commitid, progress, logpath):
+    def __init__(self, taskid, project_name, hostlist, tag, rtime, operation, user, status, commitid, progress, logpath):
         self.taskid = taskid
-        self.project = project
+        self.project_name = project_name
         self.hostlist = hostlist
         self.tag = tag
         self.rtime = rtime
