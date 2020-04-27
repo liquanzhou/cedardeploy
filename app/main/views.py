@@ -750,7 +750,7 @@ def update_host():
         if project == 'null' or ip == 'null':
             raise Exception('ERROR: host null')
         currentuser = current_user.username
-        logging.warning('update_host: %s, %s, %s, %s' %(currentuser, project, ip, variable1) )
+        logging.warning('update_host: %s, %s, %s, %s' %(currentuser, project, ip, pnum) )
         ones = projectinfo.query.filter(projectinfo.project == project ).first()
         ones1old = serverinfo.query.filter(serverinfo.project == project, serverinfo.ip == ip).first()
         pnumold = int(ones1old.pnum)
@@ -991,6 +991,11 @@ def update_project():
             raise Exception('ERROR: update_project no authority')
         logging.warning('INFO: update_project: %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s' %(
                 currentuser, project, group, environment, p, codetype, port, git, branch, checkport, checkhttp, httpurl, httpcode, make, supervisor, config, remarks) )
+
+        onesold = projectinfo.query.filter(projectinfo.project == project ).first()
+        supervisorold = onesold.supervisor
+        portold = onesold.port
+
         projectinfo.query.filter(projectinfo.project == project).update({
                              "group"       : group,
                              "codetype"    : codetype,
@@ -1007,6 +1012,14 @@ def update_project():
                              "remarks"     : remarks
                              })
         db.session.commit()
+        if supervisor != supervisorold:
+            ones = projectinfo.query.filter(projectinfo.project == project ).first()
+            ones1all = serverinfo.query.filter(serverinfo.project == project).all()
+            for ones1 in ones1all:
+                dcr = deployConfig(project, ones1.ip, ones, ones1)
+        if int(port) != int(portold):
+            print('Registration services new port')
+            print('Stop old port flow')
     except Exception as err:
         R['log'] = str(err)
         R['status'] = 'fail'
