@@ -977,10 +977,10 @@ def update_project():
         checkhttp   = request.form.get('checkhttp',   'null').strip()
         httpurl     = request.form.get('httpurl',     'null').strip()
         httpcode    = request.form.get('checkport',   'null').strip()
-        make        = request.form.get('checkport',   'null').strip()
-        supervisor  = request.form.get('checkport',   'null').strip()
-        config      = request.form.get('checkport',   'null').strip()
-        remarks     = request.form.get('checkport',   'null').strip()
+        make        = request.form.get('make',        'null').strip()
+        supervisor  = request.form.get('supervisor',  'null').strip()
+        config      = request.form.get('config',      'null').strip()
+        remarks     = request.form.get('remarks',     'null').strip()
         if project == 'null' or group == 'null' or environment == 'null' or p == 'null' or branch == 'null' or codetype == 'null' or git == 'null':
             raise Exception('ERROR: parameter error')
         project1 = environment + '_' + p

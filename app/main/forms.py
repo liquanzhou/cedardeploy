@@ -96,6 +96,7 @@ def deployConfig(project, host, ones, ones1):
             variable = {
                 '$USER$':                exec_user,
                 '$HOST_PATH$':           remote_host_path,
+                '$supervisor_log_path$': supervisor_log_path,
                 '$environment$':         ones.environment,
                 '$project$':             ones.project,
                 '$ip$':                  host,

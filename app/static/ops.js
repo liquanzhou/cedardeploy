@@ -141,8 +141,8 @@ $("body").on('click', '#update_project', function(){
             alert('project null');
             return false;
         }
-        if(!add_type){
-            alert('type null');
+        if(!add_codetype){
+            alert('codetype null');
             return false;
         }
         if(!add_git){
@@ -150,22 +150,22 @@ $("body").on('click', '#update_project', function(){
             return false;
         }
         var param = {
-            project: add_project,
-            group: add_group,
-            environment: add_environment,
-            p: add_p,
-            codetype: add_codetype,
-            port: add_port,
-            git: add_git,
-            branch: add_branch,
-            checkport: checkport,
-            checkhttp: checkhttp,
-            httpurl: httpurl,
-            httpcode: httpcode,
-            make: make,
-            supervisor: supervisor,
-            config: config,
-            remarks: remarks
+            project     : add_project,
+            group       : add_group,
+            environment : add_environment,
+            p           : add_p,
+            codetype    : add_codetype,
+            port        : add_port,
+            git         : add_git,
+            branch      : add_branch,
+            checkport   : add_checkport,
+            checkhttp   : add_checkhttp,
+            httpurl     : add_httpurl,
+            httpcode    : add_httpcode,
+            make        : add_make,
+            supervisor  : add_supervisor,
+            config      : add_config,
+            remarks     : add_remarks
         }
 
         $.post('/update_project', param, function(data){

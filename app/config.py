@@ -51,7 +51,7 @@ userpagelist = [['online','上线'],['project_admin','项目管理'],['online_lo
 # 运维钉钉通知地址
 sreRobot = 'https://oapi.dingtalk.com/robot/send?access_token=8a662b74fdce5c905b'
 # 业务线钉钉通知
-businessRobot = 'https://oapi.dingtalk.com/robot/send?access_token=cd4ebe40'
+groupRobot = 'https://oapi.dingtalk.com/robot/send?access_token=cd4ebe40'
 # 发钉钉通知的组 组名
 basicGlist = ['op-ad', 'op-ab', 'ff-aa']
 
