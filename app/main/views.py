@@ -750,7 +750,10 @@ def update_host():
         if project == 'null' or ip == 'null':
             raise Exception('ERROR: host null')
         currentuser = current_user.username
-        logging.warning('update_host: %s, %s, %s' %(currentuser, project, ip) )
+        logging.warning('update_host: %s, %s, %s, %s' %(currentuser, project, ip, variable1) )
+        ones = projectinfo.query.filter(projectinfo.project == project ).first()
+        ones1old = serverinfo.query.filter(serverinfo.project == project, serverinfo.ip == ip).first()
+        pnumold = int(ones1old.pnum)
         serverinfo.query.filter(  serverinfo.project == project, 
                                   serverinfo.ip == ip
                                ).update({
@@ -759,8 +762,16 @@ def update_host():
                                   "env"      : env
                                })
         db.session.commit()
-        ones = projectinfo.query.filter(projectinfo.project == project ).first()
         ones1 = serverinfo.query.filter(serverinfo.project == project, serverinfo.ip == ip).first()
+        pnum = int(ones1.pnum)
+        if pnum < pnumold:
+            if ones.consul == 'yes':
+                portlistnew = set(range(int(ones.port), int(ones.port) + pnum))
+                portlistold = set(range(int(ones.port), int(ones.port) + pnumold))
+                portlistdel = list(portlistold.difference(portlistnew))
+                for portdel in portlistdel:
+                    print('update_host del %s %s:%s' %(project, ip, portdel))
+                #    consulReg('del', project, ip, portdel)
         dcr = deployConfig(project, ip, ones, ones1)
         if dcr != 'ok':
             raise Exception(dcr)
