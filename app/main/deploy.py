@@ -328,6 +328,7 @@ class Deploy:
         newlog, stderr = s.communicate()
         return_status = s.returncode
         logs = '%s\n%s' % (newlog.strip(), stderr.strip())
+        logs = logs.replace('\010','').replace('\b','')
         if return_status == 0:
             if logs.strip() != '':
                 self.addlog(logs.strip())
