@@ -16,7 +16,7 @@ itsdangerous==1.1.0
 Jinja2==2.10
 ldap==1.0.2
 ldap3==2.5.1
-Mako==1.0.7
+Mako==1.2.2
 MarkupSafe==1.1.0
 MySQL-python==1.2.5
 pyasn1==0.4.4
